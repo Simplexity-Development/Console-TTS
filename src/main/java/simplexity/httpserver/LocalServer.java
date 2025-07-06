@@ -3,7 +3,7 @@ package simplexity.httpserver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-import simplexity.config.config.TtsConfig;
+import simplexity.config.config.ConfigHandler;
 import simplexity.config.locale.Message;
 import simplexity.util.Logging;
 
@@ -29,7 +29,7 @@ public class LocalServer {
     private static void setupServer() {
         try {
             server = com.sun.net.httpserver.HttpServer.create(
-                    new InetSocketAddress(TtsConfig.getInstance().getPort()), 0);
+                    new InetSocketAddress(ConfigHandler.getInstance().getServerPort()), 0);
             server.setExecutor(null);
             server.createContext("/", new ChatHandler());
             server.start();

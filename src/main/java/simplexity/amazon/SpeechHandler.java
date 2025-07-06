@@ -11,8 +11,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import simplexity.Main;
-import simplexity.config.config.AwsConfig;
-import simplexity.config.config.ReplaceTextConfig;
+import simplexity.config.config.ConfigHandler;
+import simplexity.config.config.SpeechEffectRule;
 import simplexity.config.locale.Message;
 import simplexity.util.Logging;
 
@@ -23,7 +23,7 @@ public class SpeechHandler {
     private VoiceId voiceId;
 
     public SpeechHandler() {
-        this.voiceId = AwsConfig.getInstance().getDefaultVoice();
+        this.voiceId = ConfigHandler.getInstance().getDefaultVoice();
         Logging.log(logger, "Initialized SpeechHandler with default voice: " + voiceId.toString(), Level.INFO);
     }
 
@@ -57,13 +57,13 @@ public class SpeechHandler {
      */
 
     public String replaceText(String text) {
-        for (String key : ReplaceTextConfig.getInstance().getReplaceText().keySet()) {
-            text = text.replace(key, ReplaceTextConfig.getInstance().getReplaceText().get(key));
+        for (SpeechEffectRule effectRule : ConfigHandler.getInstance().getEffectRules()) {
+            text = effectRule.applyRule(text);
         }
-        for (String key : AwsConfig.getInstance().getVoicePrefixes().keySet()) {
+        for (String key : ConfigHandler.getInstance().getVoicePrefixes().keySet()) {
             if (text.startsWith(key)) {
                 text = text.replace(key, "");
-                voiceId = AwsConfig.getInstance().getVoicePrefixes().get(key);
+                voiceId = ConfigHandler.getInstance().getVoicePrefixes().get(key);
             }
         }
         return text;

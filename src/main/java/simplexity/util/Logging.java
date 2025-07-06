@@ -12,7 +12,7 @@ public class Logging {
     public static void logAndPrint(Logger logger, String message, Level level) {
         String logMessage = stripAnsiCodes(message);
         logger.atLevel(level).log(logMessage);
-        System.out.println(message);
+        System.out.println(ColorTags.parse(message));
     }
 
     public static void log(Logger logger, String message, Level level) {

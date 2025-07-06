@@ -4,27 +4,25 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import simplexity.amazon.PollyHandler;
+import simplexity.amazon.PollySetup;
 import simplexity.amazon.SpeechHandler;
 import simplexity.commands.CommandManager;
 import simplexity.commands.ExitCommand;
 import simplexity.commands.HelpCommand;
 import simplexity.commands.ReloadCommand;
-import simplexity.config.AbstractConfig;
-import simplexity.config.config.AwsConfig;
-import simplexity.config.config.ReplaceTextConfig;
-import simplexity.config.config.TtsConfig;
-import simplexity.config.locale.LocaleConfig;
+import simplexity.config.config.ConfigHandler;
+import simplexity.config.config.YmlConfig;
 import simplexity.httpserver.LocalServer;
-import simplexity.amazon.PollySetup;
 import simplexity.util.Logging;
 
-import java.util.ArrayList;
+import java.io.File;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
+    private static YmlConfig ymlConfig;
     private static CommandManager commandManager;
-    private static final ArrayList<AbstractConfig> configs = new ArrayList<>();
     public static PollyHandler pollyHandler;
     private static SpeechHandler speechHandler;
     public static Scanner scanner;
@@ -35,7 +33,15 @@ public class Main {
         scanner = new Scanner(System.in);
         commandManager = new CommandManager();
         registerCommands(commandManager);
-        setupConfigs();
+        File file = new File("config/config.yml");
+        try {
+            ymlConfig = new YmlConfig(file, "config.yml");
+        } catch (IOException e) {
+            System.out.println("Fatal Error: Config was unable to be generated.");
+            e.printStackTrace();
+            return;
+        }
+        ConfigHandler.getInstance().reloadValues(ymlConfig);
         PollySetup.setupPollyAndSpeech();
         LocalServer.run();
         while (runApp) {
@@ -52,17 +58,6 @@ public class Main {
         commandManager.registerCommand(new ReloadCommand("--reload", "Reloads the configuration"));
     }
 
-    private static void setupConfigs(){
-        AwsConfig awsConfig = new AwsConfig();
-        configs.add(awsConfig);
-        TtsConfig ttsConfig = new TtsConfig();
-        configs.add(ttsConfig);
-        ReplaceTextConfig replaceTextConfig = new ReplaceTextConfig();
-        configs.add(replaceTextConfig);
-        LocaleConfig localeConfig = new LocaleConfig();
-        configs.add(localeConfig);
-    }
-
     public static CommandManager getCommandManager() {
         return commandManager;
     }
@@ -71,20 +66,20 @@ public class Main {
         return pollyHandler;
     }
 
-    public static void setSpeechHandler(SpeechHandler speechHandlerToSet){
+    public static void setSpeechHandler(SpeechHandler speechHandlerToSet) {
         speechHandler = speechHandlerToSet;
     }
 
-    public static void setPollyHandler(PollyHandler pollyHandlerToSet){
+    public static void setPollyHandler(PollyHandler pollyHandlerToSet) {
         pollyHandler = pollyHandlerToSet;
     }
 
-    public static Scanner getScanner(){
+    public static Scanner getScanner() {
         return scanner;
     }
 
-    public static ArrayList<AbstractConfig> getConfigs() {
-        return configs;
+    public static YmlConfig getYmlConfig(){
+        return ymlConfig;
     }
 
 }
