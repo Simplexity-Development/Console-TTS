@@ -36,6 +36,6 @@ public class ReloadCommand extends Command {
         LocalServer.stop();
         Logging.log(logger, "Starting local server", Level.INFO);
         LocalServer.run();
-        Logging.logAndPrint(logger, LocaleHandler.getInstance().getFeedbackReload(), Level.ERROR);
+        Logging.logAndPrint(logger, LocaleHandler.getInstance().getFeedbackReload(), Level.INFO);
     }
 }

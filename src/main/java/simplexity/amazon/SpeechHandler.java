@@ -14,6 +14,8 @@ import simplexity.Main;
 import simplexity.config.ConfigHandler;
 import simplexity.config.LocaleHandler;
 import simplexity.config.SpeechEffectRule;
+import simplexity.config.TextReplaceRule;
+import simplexity.config.VoicePrefixRule;
 import simplexity.util.Logging;
 
 import java.io.InputStream;
@@ -57,14 +59,17 @@ public class SpeechHandler {
      */
 
     public String replaceText(String text) {
+        for (VoicePrefixRule prefixRule : ConfigHandler.getInstance().getVoicePrefixRules()) {
+            if (!prefixRule.matches(text)) continue;
+            text = prefixRule.applyRule(text);
+            voiceId = prefixRule.getVoiceId();
+            break;
+        }
         for (SpeechEffectRule effectRule : ConfigHandler.getInstance().getEffectRules()) {
             text = effectRule.applyRule(text);
         }
-        for (String key : ConfigHandler.getInstance().getVoicePrefixes().keySet()) {
-            if (text.startsWith(key)) {
-                text = text.replace(key, "");
-                voiceId = ConfigHandler.getInstance().getVoicePrefixes().get(key);
-            }
+        for (TextReplaceRule replaceRule : ConfigHandler.getInstance().getTextReplaceRules()) {
+            text = replaceRule.applyRule(text);
         }
         return text;
     }

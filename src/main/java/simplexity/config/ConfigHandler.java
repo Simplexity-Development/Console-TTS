@@ -9,14 +9,13 @@ import org.slf4j.event.Level;
 import simplexity.Main;
 import simplexity.util.Logging;
 
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
 public class ConfigHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(ConfigHandler.class);
-    private final HashMap<String, VoiceId> voicePrefixes = new HashMap<>();
+    private final HashSet<VoicePrefixRule> voicePrefixRules = new HashSet<>();
     private final HashSet<SpeechEffectRule> effectRules = new HashSet<>();
     private final HashSet<TextReplaceRule> textReplaceRules = new HashSet<>();
 
@@ -52,11 +51,17 @@ public class ConfigHandler {
     }
 
     public void reloadVoicePrefixes(YmlConfig config) {
-        voicePrefixes.clear();
+        voicePrefixRules.clear();
         for (String key : config.getKeys("aws-api.voice-prefixes")) {
-            VoiceId voice = config.getOption("aws-api.voice-prefixes." + key, VoiceId.class);
-            if (voice == null) continue;
-            voicePrefixes.put(key, voice);
+            String voiceName = config.getOption("aws-api.voice-prefixes." + key, String.class);
+            if (voiceName == null) continue;
+            try {
+                VoiceId voiceId = VoiceId.valueOf(voiceName);
+                VoicePrefixRule prefixRule = new VoicePrefixRule(key, voiceId);
+                voicePrefixRules.add(prefixRule);
+            } catch (IllegalArgumentException e) {
+                Logging.logAndPrint(logger, "issue", Level.WARN); //todo actual warning
+            }
         }
     }
 
@@ -102,8 +107,8 @@ public class ConfigHandler {
         return awsSecretKey;
     }
 
-    public HashMap<String, VoiceId> getVoicePrefixes() {
-        return voicePrefixes;
+    public HashSet<VoicePrefixRule> getVoicePrefixRules() {
+        return voicePrefixRules;
     }
 
     public Region getAwsRegion() {
@@ -116,6 +121,10 @@ public class ConfigHandler {
 
     public HashSet<SpeechEffectRule> getEffectRules() {
         return effectRules;
+    }
+
+    public HashSet<TextReplaceRule> getTextReplaceRules() {
+        return textReplaceRules;
     }
 
     public Integer getServerPort() {
