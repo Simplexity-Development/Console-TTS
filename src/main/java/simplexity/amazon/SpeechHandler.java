@@ -11,9 +11,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import simplexity.Main;
-import simplexity.config.TTSConfig;
-import simplexity.messages.Errors;
-import simplexity.util.Util;
+import simplexity.config.config.ConfigHandler;
+import simplexity.config.config.SpeechEffectRule;
+import simplexity.config.locale.Message;
+import simplexity.util.Logging;
 
 import java.io.InputStream;
 
@@ -22,14 +23,20 @@ public class SpeechHandler {
     private VoiceId voiceId;
 
     public SpeechHandler() {
-        this.voiceId = TTSConfig.getInstance().getDefaultVoice();
+        this.voiceId = ConfigHandler.getInstance().getDefaultVoice();
+        Logging.log(logger, "Initialized SpeechHandler with default voice: " + voiceId.toString(), Level.INFO);
     }
 
+    /**
+     * Processes the given text, optionally replacing it based on configurations,
+     * and synthesizes and plays the speech.
+     */
     public void processSpeech(String text) {
-        System.out.println(text);
+        // Replace text and determine if SSML is needed
         String processedText = replaceText(text);
-        System.out.println(processedText);
         boolean useSSML = !text.equals(processedText);
+
+        //Synthesize speech
         InputStream speechStream;
         if (useSSML) {
             speechStream = synthesizeSSMLSpeech(processedText, voiceId);
@@ -37,58 +44,79 @@ public class SpeechHandler {
             speechStream = synthesizeSpeech(processedText, voiceId);
         }
         if (speechStream == null) {
-            Util.logAndPrint(logger, Errors.CAUGHT_EXCEPTION.replace("%error%", "Speech stream is null"), Level.ERROR);
+            Logging.logAndPrint(logger, Message.GENERAL_ERROR.getMessage().replace("%error%", "Speech stream is null"), Level.ERROR);
             return;
         }
+
+        //play it
         playSpeech(speechStream);
     }
 
+    /**
+     * Replaces text based on replacement mappings and updates the voice if a prefix is matched.
+     */
+
     public String replaceText(String text) {
-        for (String key : TTSConfig.getInstance().getReplaceText().keySet()) {
-            text = text.replace(key, TTSConfig.getInstance().getReplaceText().get(key));
+        for (SpeechEffectRule effectRule : ConfigHandler.getInstance().getEffectRules()) {
+            text = effectRule.applyRule(text);
         }
-        for (String key : TTSConfig.getInstance().getVoicePrefixes().keySet()) {
+        for (String key : ConfigHandler.getInstance().getVoicePrefixes().keySet()) {
             if (text.startsWith(key)) {
                 text = text.replace(key, "");
-                voiceId = TTSConfig.getInstance().getVoicePrefixes().get(key);
+                voiceId = ConfigHandler.getInstance().getVoicePrefixes().get(key);
             }
         }
         return text;
     }
 
     public InputStream synthesizeSSMLSpeech(String text, VoiceId voice) {
-        text = "<speak>" + text + "</speak>";
-        SynthesizeSpeechRequest synthesizeSpeechRequest;
+        String ssmlText = "<speak>" + text + "</speak>";
         try {
-            synthesizeSpeechRequest = new SynthesizeSpeechRequest()
-                    .withText(text)
+            SynthesizeSpeechRequest request = new SynthesizeSpeechRequest()
+                    .withText(ssmlText)
                     .withTextType(TextType.Ssml)
                     .withVoiceId(voice)
                     .withOutputFormat(OutputFormat.Mp3);
-            SynthesizeSpeechResult synthesizeSpeechResult = Main.getPollyHandler().getPolly().synthesizeSpeech(synthesizeSpeechRequest);
-            return synthesizeSpeechResult.getAudioStream();
+            SynthesizeSpeechResult result = Main.getPollyHandler().getPolly().synthesizeSpeech(request);
+            return result.getAudioStream();
         } catch (RuntimeException exception) {
-            Util.logAndPrint(logger, Errors.CAUGHT_EXCEPTION.replace("%error%", exception.getMessage()), Level.ERROR);
+            logSynthesisError(exception, ssmlText);
             return null;
         }
     }
 
     public InputStream synthesizeSpeech(String text, VoiceId voice) {
-        SynthesizeSpeechRequest synthesizeSpeechRequest = new SynthesizeSpeechRequest()
-                .withText(text)
-                .withVoiceId(voice)
-                .withOutputFormat(OutputFormat.Mp3);
-        SynthesizeSpeechResult synthesizeSpeechResult = Main.getPollyHandler().getPolly().synthesizeSpeech(synthesizeSpeechRequest);
-        return synthesizeSpeechResult.getAudioStream();
+        try {
+            SynthesizeSpeechRequest request = new SynthesizeSpeechRequest()
+                    .withText(text)
+                    .withVoiceId(voice)
+                    .withOutputFormat(OutputFormat.Mp3);
+            SynthesizeSpeechResult result = Main.getPollyHandler().getPolly().synthesizeSpeech(request);
+            return result.getAudioStream();
+        } catch (RuntimeException exception) {
+            logSynthesisError(exception, text);
+            return null;
+        }
     }
 
+    /**
+     * Plays the text as speech
+     */
     public void playSpeech(InputStream speechStream) {
         AdvancedPlayer player;
         try {
             player = new AdvancedPlayer(speechStream, FactoryRegistry.systemRegistry().createAudioDevice());
             player.play();
         } catch (Exception exception) {
-            Util.logAndPrint(logger, Errors.CAUGHT_EXCEPTION.replace("%error%", exception.getMessage()), Level.ERROR);
+            Logging.logAndPrint(logger, Message.GENERAL_ERROR.getMessage().replace("%error%", exception.getMessage()), Level.ERROR);
         }
+    }
+
+    /**
+     * Logs errors during speech synthesis.
+     */
+    private void logSynthesisError(Exception e, String text) {
+        Logging.logAndPrint(logger, Message.GENERAL_ERROR.getMessage().replace("%error%", e.getMessage()), Level.ERROR);
+        Logging.logAndPrint(logger, Message.MESSAGE_NOT_PARSABLE.getMessage().replace("%message%", text), Level.ERROR);
     }
 }

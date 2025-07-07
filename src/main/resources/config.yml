@@ -1,0 +1,36 @@
+aws-api:
+  access-key: ""
+  secret-key: ""
+  region: "US_EAST_1"
+  default-voice: "Brian"
+  voice-prefixes:
+    Sal: Salli
+    Kim: Kimberly
+    Bri: Brian
+speech-effect-markdown:
+  "**":
+    type: prosody
+    volume: x-loud
+    pitch: low
+    rate: slow
+  "~~":
+    type: amazon:effect
+    name: whispered
+  "__":
+    type: emphasis
+    level: strong
+  "*":
+    type: prosody
+    volume: x-loud
+    rate: x-fast
+    pitch: x-high
+  "||":
+    type: say-as
+    interpret-as: expletive
+
+internal-settings:
+  server-port: 3000
+
+
+text-replacements:
+    "<3": "heart emoji"

@@ -1,55 +1,53 @@
 package simplexity;
 
-import com.amazonaws.regions.Region;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.event.Level;
 import simplexity.amazon.PollyHandler;
+import simplexity.amazon.PollySetup;
 import simplexity.amazon.SpeechHandler;
 import simplexity.commands.CommandManager;
 import simplexity.commands.ExitCommand;
 import simplexity.commands.HelpCommand;
 import simplexity.commands.ReloadCommand;
-import simplexity.config.TTSConfig;
-import simplexity.messages.Errors;
-import simplexity.twitch.TwitchClientHandler;
-import simplexity.twitch.TwitchSetup;
+import simplexity.config.config.ConfigHandler;
+import simplexity.config.config.YmlConfig;
+import simplexity.httpserver.LocalServer;
+import simplexity.util.Logging;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.Scanner;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
+    private static YmlConfig ymlConfig;
     private static CommandManager commandManager;
-    private static PollyHandler pollyHandler;
+    public static PollyHandler pollyHandler;
     private static SpeechHandler speechHandler;
-    private static TwitchClientHandler twitchClientHandler;
-    private static TwitchSetup twitchSetup;
     public static Scanner scanner;
+    public static boolean runApp = true;
 
     public static void main(String[] args) {
-        logger.info("Starting application");
+        Logging.log(logger, "Starting application", Level.INFO);
         scanner = new Scanner(System.in);
         commandManager = new CommandManager();
         registerCommands(commandManager);
-        TTSConfig.getInstance().reloadConfig();
-        pollyHandler = createPollyHandler();
-        speechHandler = new SpeechHandler();
-        twitchClientHandler = new TwitchClientHandler();
-        twitchSetup = new TwitchSetup();
-        twitchSetup.setup();
-        twitchClientHandler.setupClient();
-        twitchClientHandler.getTwitchClient().getChat().joinChannel("RhythmWeHear");
-
-        while (true) {
+        File file = new File("config/config.yml");
+        try {
+            ymlConfig = new YmlConfig(file, "config.yml");
+        } catch (IOException e) {
+            System.out.println("Fatal Error: Config was unable to be generated.");
+            e.printStackTrace();
+            return;
+        }
+        ConfigHandler.getInstance().reloadValues(ymlConfig);
+        PollySetup.setupPollyAndSpeech();
+        LocalServer.run();
+        while (runApp) {
             String input = scanner.nextLine();
-            if (input.equals("--exit")) {
-                return;
-            }
             if (!commandManager.runCommand(input)) {
-                twitchClientHandler.getTwitchClient().getChat().sendMessage("RhythmWeHear", input);
-
                 speechHandler.processSpeech(input);
-            } else {
-                System.out.println("command executed");
             }
         }
     }
@@ -64,26 +62,24 @@ public class Main {
         return commandManager;
     }
 
-    public static PollyHandler createPollyHandler() {
-        PollyHandler pollyHandler = null;
-        String awsAccessID = TTSConfig.getInstance().getAwsAccessID();
-        String awsSecretKey = TTSConfig.getInstance().getAwsSecretKey();
-        Region awsRegion = TTSConfig.getInstance().getAwsRegion();
-        if (awsAccessID.isEmpty() || awsSecretKey.isEmpty() || awsRegion == null) {
-            System.out.println(Errors.NULL_AWS_CREDENTIALS);
-            return null;
-        }
-        try {
-
-            pollyHandler = new PollyHandler(awsAccessID, awsSecretKey, awsRegion);
-        } catch (IllegalArgumentException e) {
-            System.out.println(Errors.NULL_AWS_CREDENTIALS);
-        }
-        return pollyHandler;
-    }
-
-
     public static PollyHandler getPollyHandler() {
         return pollyHandler;
     }
+
+    public static void setSpeechHandler(SpeechHandler speechHandlerToSet) {
+        speechHandler = speechHandlerToSet;
+    }
+
+    public static void setPollyHandler(PollyHandler pollyHandlerToSet) {
+        pollyHandler = pollyHandlerToSet;
+    }
+
+    public static Scanner getScanner() {
+        return scanner;
+    }
+
+    public static YmlConfig getYmlConfig(){
+        return ymlConfig;
+    }
+
 }

@@ -3,19 +3,35 @@ package simplexity.commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-import simplexity.config.TTSConfig;
-import simplexity.messages.Output;
-import simplexity.util.Util;
+import simplexity.Main;
+import simplexity.config.locale.Message;
+import simplexity.httpserver.LocalServer;
+import simplexity.util.Logging;
+
+import java.io.IOException;
 
 public class ReloadCommand extends Command {
+
     private static final Logger logger = LoggerFactory.getLogger(ReloadCommand.class);
+
     public ReloadCommand(String name, String usage) {
         super(name, usage);
     }
 
     @Override
     public void execute() {
-        TTSConfig.getInstance().reloadConfig();
-        Util.logAndPrint(logger, Output.RELOAD_MESSAGE, Level.ERROR);
+        Logging.log(logger, "Reloading configs", Level.INFO);
+        try {
+            Main.getYmlConfig().reloadConfig();
+        } catch (IOException e) {
+            Logging.logAndPrint(logger, "Fatal Error Reloading Config Files", Level.WARN);
+            Logging.logAndPrint(logger, e.getStackTrace().toString(), Level.WARN);
+            System.exit(-1);
+        }
+        Logging.log(logger, "Stopping local server", Level.INFO);
+        LocalServer.stop();
+        Logging.log(logger, "Starting local server", Level.INFO);
+        LocalServer.run();
+        Logging.logAndPrint(logger, Message.RELOAD_MESSAGE.getMessage(), Level.ERROR);
     }
 }
