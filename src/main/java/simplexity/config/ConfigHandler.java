@@ -7,6 +7,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import simplexity.Main;
+import simplexity.config.rules.SpeechEffectRule;
+import simplexity.config.rules.TextReplaceRule;
+import simplexity.config.rules.VoicePrefixRule;
 import simplexity.util.Logging;
 
 import java.util.HashSet;
@@ -28,7 +31,6 @@ public class ConfigHandler {
     public static ConfigHandler getInstance() {
         if (instance == null) {
             instance = new ConfigHandler();
-            Logging.log(logger, "Generating new instance of AwsConfig", Level.INFO);
         }
         return instance;
     }
@@ -42,6 +44,7 @@ public class ConfigHandler {
     }
 
     public void reloadAwsValues(YmlConfig config) {
+        Logging.log(logger, "Reloading AWS Values", Level.INFO);
         awsAccessID = config.getOption("aws-api.access-key", String.class, "");
         awsSecretKey = config.getOption("aws-api.secret-key", String.class, "");
         Regions region = config.getOption("aws-api.region", Regions.class, Regions.US_EAST_1);
@@ -51,6 +54,7 @@ public class ConfigHandler {
     }
 
     public void reloadVoicePrefixes(YmlConfig config) {
+        Logging.log(logger, "Reloading Voice Prefixes", Level.INFO);
         voicePrefixRules.clear();
         for (String key : config.getKeys("aws-api.voice-prefixes")) {
             String voiceName = config.getOption("aws-api.voice-prefixes." + key, String.class);
@@ -60,12 +64,14 @@ public class ConfigHandler {
                 VoicePrefixRule prefixRule = new VoicePrefixRule(key, voiceId);
                 voicePrefixRules.add(prefixRule);
             } catch (IllegalArgumentException e) {
-                Logging.logAndPrint(logger, "issue", Level.WARN); //todo actual warning
+                String message = "[Config] Config value at 'aws-api.voice-prefixes." + key + "' is invalid";
+                Logging.log(logger, message, Level.WARN);
             }
         }
     }
 
     public void reloadSpeechEffects(YmlConfig config) {
+        Logging.log(logger, "Reloading Speech Effects", Level.INFO);
         effectRules.clear();
         for (String key : config.getKeys("speech-effect-markdown")) {
             StringBuilder openingBuilder = new StringBuilder();
@@ -89,6 +95,7 @@ public class ConfigHandler {
     }
 
     public void reloadTextReplace(YmlConfig config) {
+        Logging.log(logger, "Reloading Text Replacements", Level.INFO);
         textReplaceRules.clear();
         for (String key : config.getKeys("text-replacements")) {
             String replacementText = config.getOption("text-replacements." + key, String.class);

@@ -1,11 +1,11 @@
-package simplexity.config;
+package simplexity.config.rules;
 
 import java.util.regex.Pattern;
 
 public class TextReplaceRule {
 
-    private String replacementText;
-    private Pattern textPattern;
+    private final String replacementText;
+    private final Pattern textPattern;
 
     public TextReplaceRule(String textToFind, String replacementText) {
         this.replacementText = replacementText;

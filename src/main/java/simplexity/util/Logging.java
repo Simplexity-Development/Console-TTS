@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 public class Logging {
 
-    private static final Pattern ANSI_PATTERN = Pattern.compile("\u001B\\[[;\\d]*m");
+    public static final Pattern ANSI_PATTERN = Pattern.compile("\u001B\\[[;\\d]*m");
 
     public static void logAndPrint(Logger logger, String message, Level level) {
         String logMessage = stripAnsiCodes(message);

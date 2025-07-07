@@ -13,9 +13,9 @@ import org.slf4j.event.Level;
 import simplexity.Main;
 import simplexity.config.ConfigHandler;
 import simplexity.config.LocaleHandler;
-import simplexity.config.SpeechEffectRule;
-import simplexity.config.TextReplaceRule;
-import simplexity.config.VoicePrefixRule;
+import simplexity.config.rules.SpeechEffectRule;
+import simplexity.config.rules.TextReplaceRule;
+import simplexity.config.rules.VoicePrefixRule;
 import simplexity.util.Logging;
 
 import java.io.InputStream;
@@ -71,6 +71,7 @@ public class SpeechHandler {
         for (TextReplaceRule replaceRule : ConfigHandler.getInstance().getTextReplaceRules()) {
             text = replaceRule.applyRule(text);
         }
+        text = Logging.stripAnsiCodes(text);
         return text;
     }
 

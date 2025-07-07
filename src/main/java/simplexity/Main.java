@@ -30,6 +30,7 @@ public class Main {
     public static Scanner scanner;
     public static boolean runApp = true;
 
+    @SuppressWarnings("CallToPrintStackTrace")
     public static void main(String[] args) {
         Logging.log(logger, "Starting application", Level.INFO);
         scanner = new Scanner(System.in);
@@ -52,6 +53,7 @@ public class Main {
         while (runApp) {
             String input = scanner.nextLine();
             if (!commandManager.runCommand(input)) {
+                input = stripInvalidCharacters(input);
                 speechHandler.processSpeech(input);
             }
         }
@@ -61,6 +63,12 @@ public class Main {
         commandManager.registerCommand(new HelpCommand("--help", "Displays the help messages"));
         commandManager.registerCommand(new ExitCommand("--exit", "Terminates the program"));
         commandManager.registerCommand(new ReloadCommand("--reload", "Reloads the configuration"));
+    }
+
+    private static String stripInvalidCharacters(String input) {
+        if (input == null) return null;
+        return input.replaceAll("\u001B\\[[;\\d]*[ -/]*[@-~]", "")
+                .replaceAll("\\p{C}", "");
     }
 
     public static CommandManager getCommandManager() {

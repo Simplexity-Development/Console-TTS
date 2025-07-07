@@ -1,8 +1,5 @@
 error:
   general: "<br-red>ERROR: %error%</color>"
-  invalid-input: "<br-red>ERROR: Invalid input</color>"
-  invalid-voice: "<br-red>Error: '%voice%' is not a valid voice. \\nPlease make sure you are only choosing from standard voices.</color> \\nStandard voices can be found here: \\n<yellow>https://docs.aws.amazon.com/polly/latest/dg/voicelist.html</color>"
-  invalid-region: "<br-red>Error: '%region%' is not a valid region.</color> \\n<yellow>Regions can be found here: \\nhttps://aws.amazon.com/about-aws/global-infrastructure/regions_az/ \\nUsing default region of 'US_EAST_1'"
   message-not-parsable: "<br-red>ERROR: Message was not parsable, attempted to send: %message%</color>"
   unknown-command: "<br-red>ERROR: '%command%' is not a recognized command</color>"
   null-aws-credentials: "<br-red>ERROR: AWS credentials are null, please fill them out</color>"
