@@ -11,9 +11,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import simplexity.Main;
-import simplexity.config.config.ConfigHandler;
-import simplexity.config.config.SpeechEffectRule;
-import simplexity.config.locale.Message;
+import simplexity.config.ConfigHandler;
+import simplexity.config.LocaleHandler;
+import simplexity.config.SpeechEffectRule;
 import simplexity.util.Logging;
 
 import java.io.InputStream;
@@ -44,7 +44,7 @@ public class SpeechHandler {
             speechStream = synthesizeSpeech(processedText, voiceId);
         }
         if (speechStream == null) {
-            Logging.logAndPrint(logger, Message.GENERAL_ERROR.getMessage().replace("%error%", "Speech stream is null"), Level.ERROR);
+            Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", "Speech stream is null"), Level.ERROR);
             return;
         }
 
@@ -108,7 +108,7 @@ public class SpeechHandler {
             player = new AdvancedPlayer(speechStream, FactoryRegistry.systemRegistry().createAudioDevice());
             player.play();
         } catch (Exception exception) {
-            Logging.logAndPrint(logger, Message.GENERAL_ERROR.getMessage().replace("%error%", exception.getMessage()), Level.ERROR);
+            Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", exception.getMessage()), Level.ERROR);
         }
     }
 
@@ -116,7 +116,7 @@ public class SpeechHandler {
      * Logs errors during speech synthesis.
      */
     private void logSynthesisError(Exception e, String text) {
-        Logging.logAndPrint(logger, Message.GENERAL_ERROR.getMessage().replace("%error%", e.getMessage()), Level.ERROR);
-        Logging.logAndPrint(logger, Message.MESSAGE_NOT_PARSABLE.getMessage().replace("%message%", text), Level.ERROR);
+        Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", e.getMessage()), Level.ERROR);
+        Logging.logAndPrint(logger, LocaleHandler.getInstance().getMessageNotParsable().replace("%message%", text), Level.ERROR);
     }
 }

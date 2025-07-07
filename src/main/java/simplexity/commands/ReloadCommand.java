@@ -4,7 +4,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import simplexity.Main;
-import simplexity.config.locale.Message;
+import simplexity.config.ConfigHandler;
+import simplexity.config.LocaleHandler;
 import simplexity.httpserver.LocalServer;
 import simplexity.util.Logging;
 
@@ -22,7 +23,10 @@ public class ReloadCommand extends Command {
     public void execute() {
         Logging.log(logger, "Reloading configs", Level.INFO);
         try {
-            Main.getYmlConfig().reloadConfig();
+            Main.getConfig().reloadConfig();
+            Main.getLocaleConfig().reloadConfig();
+            ConfigHandler.getInstance().reloadValues();
+            LocaleHandler.getInstance().reloadMessages();
         } catch (IOException e) {
             Logging.logAndPrint(logger, "Fatal Error Reloading Config Files", Level.WARN);
             Logging.logAndPrint(logger, e.getStackTrace().toString(), Level.WARN);
@@ -32,6 +36,6 @@ public class ReloadCommand extends Command {
         LocalServer.stop();
         Logging.log(logger, "Starting local server", Level.INFO);
         LocalServer.run();
-        Logging.logAndPrint(logger, Message.RELOAD_MESSAGE.getMessage(), Level.ERROR);
+        Logging.logAndPrint(logger, LocaleHandler.getInstance().getFeedbackReload(), Level.ERROR);
     }
 }

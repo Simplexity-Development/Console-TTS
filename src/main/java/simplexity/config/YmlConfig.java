@@ -1,13 +1,15 @@
-package simplexity.config.config;
+package simplexity.config;
 
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
@@ -18,7 +20,6 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.io.FileWriter;
 import java.util.Set;
 
 
@@ -297,8 +298,18 @@ public class YmlConfig {
 
     public void saveConfig() throws IOException {
         if (file == null) throw new IllegalStateException("Cannot save config if there's not a file to reference");
+        DumperOptions options = new DumperOptions();
+        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+        options.setPrettyFlow(true);
+        options.setIndent(2);
+        options.setDefaultScalarStyle(DumperOptions.ScalarStyle.PLAIN);
+        options.setSplitLines(false);
+        options.setAllowUnicode(true);
+
+        Yaml yml = new Yaml(options);
+
         try (FileWriter writer = new FileWriter(file)) {
-            new Yaml().dump(this.root, writer);
+            yml.dump(this.root, writer);
         }
     }
 

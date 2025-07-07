@@ -10,8 +10,9 @@ import simplexity.commands.CommandManager;
 import simplexity.commands.ExitCommand;
 import simplexity.commands.HelpCommand;
 import simplexity.commands.ReloadCommand;
-import simplexity.config.config.ConfigHandler;
-import simplexity.config.config.YmlConfig;
+import simplexity.config.ConfigHandler;
+import simplexity.config.LocaleHandler;
+import simplexity.config.YmlConfig;
 import simplexity.httpserver.LocalServer;
 import simplexity.util.Logging;
 
@@ -21,7 +22,8 @@ import java.util.Scanner;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
-    private static YmlConfig ymlConfig;
+    private static YmlConfig config;
+    private static YmlConfig localeConfig;
     private static CommandManager commandManager;
     public static PollyHandler pollyHandler;
     private static SpeechHandler speechHandler;
@@ -34,14 +36,17 @@ public class Main {
         commandManager = new CommandManager();
         registerCommands(commandManager);
         File file = new File("config/config.yml");
+        File localeFile = new File("config/locale.yml");
         try {
-            ymlConfig = new YmlConfig(file, "config.yml");
+            config = new YmlConfig(file, "config.yml");
+            localeConfig = new YmlConfig(localeFile, "locale.yml");
         } catch (IOException e) {
             System.out.println("Fatal Error: Config was unable to be generated.");
             e.printStackTrace();
             return;
         }
-        ConfigHandler.getInstance().reloadValues(ymlConfig);
+        LocaleHandler.getInstance().reloadMessages();
+        ConfigHandler.getInstance().reloadValues();
         PollySetup.setupPollyAndSpeech();
         LocalServer.run();
         while (runApp) {
@@ -78,8 +83,12 @@ public class Main {
         return scanner;
     }
 
-    public static YmlConfig getYmlConfig(){
-        return ymlConfig;
+    public static YmlConfig getConfig(){
+        return config;
+    }
+
+    public static YmlConfig getLocaleConfig(){
+        return localeConfig;
     }
 
 }

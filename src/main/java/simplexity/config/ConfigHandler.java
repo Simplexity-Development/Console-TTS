@@ -1,4 +1,4 @@
-package simplexity.config.config;
+package simplexity.config;
 
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
@@ -6,6 +6,7 @@ import com.amazonaws.services.polly.model.VoiceId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
+import simplexity.Main;
 import simplexity.util.Logging;
 
 import java.util.HashMap;
@@ -25,11 +26,6 @@ public class ConfigHandler {
     private Integer serverPort;
     private static ConfigHandler instance;
 
-    public ConfigHandler() {
-        super(); //todo figure out a better way to handle the config names
-        Logging.log(logger, "Initializing AWS config class", Level.INFO);
-    }
-
     public static ConfigHandler getInstance() {
         if (instance == null) {
             instance = new ConfigHandler();
@@ -38,13 +34,15 @@ public class ConfigHandler {
         return instance;
     }
 
-    public void reloadValues(YmlConfig config) {
+    public void reloadValues() {
+        YmlConfig config = Main.getConfig();
         reloadSpeechEffects(config);
         reloadAwsValues(config);
+        reloadTextReplace(config);
         serverPort = config.getOption("internal-settings.server-port", Integer.class, 3000);
     }
 
-    public void reloadAwsValues(YmlConfig config){
+    public void reloadAwsValues(YmlConfig config) {
         awsAccessID = config.getOption("aws-api.access-key", String.class, "");
         awsSecretKey = config.getOption("aws-api.secret-key", String.class, "");
         Regions region = config.getOption("aws-api.region", Regions.class, Regions.US_EAST_1);
@@ -85,7 +83,15 @@ public class ConfigHandler {
         }
     }
 
-    public void reloadTextReplace(YmlConfig config){}
+    public void reloadTextReplace(YmlConfig config) {
+        textReplaceRules.clear();
+        for (String key : config.getKeys("text-replacements")) {
+            String replacementText = config.getOption("text-replacements." + key, String.class);
+            if (replacementText == null) continue;
+            TextReplaceRule replaceRule = new TextReplaceRule(key, replacementText);
+            textReplaceRules.add(replaceRule);
+        }
+    }
 
 
     public String getAwsAccessID() {

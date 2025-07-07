@@ -1,4 +1,4 @@
-package simplexity.config.config;
+package simplexity.config;
 
 import java.util.regex.Pattern;
 
