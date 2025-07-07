@@ -1,4 +1,4 @@
-package simplexity.util;
+package simplexity.console;
 
 public class ColorTags {
 

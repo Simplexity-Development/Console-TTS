@@ -7,13 +7,10 @@ import org.slf4j.event.Level;
 import simplexity.Main;
 import simplexity.config.ConfigHandler;
 import simplexity.config.LocaleHandler;
-import simplexity.util.Logging;
-
-import java.util.Scanner;
+import simplexity.console.Logging;
 
 public class PollySetup {
     private static final Logger logger = LoggerFactory.getLogger(PollySetup.class);
-    private static final Scanner scanner = Main.getScanner();
 
     public static void setupPollyAndSpeech() {
         connectToPolly();
@@ -38,17 +35,11 @@ public class PollySetup {
     }
 
     public static void connectToPolly() {
-        while (true) {
-            Main.setPollyHandler(createPollyHandler());
-            if (Main.getPollyHandler() != null) {
-                return;
-            }
-            Logging.logAndPrint(logger, LocaleHandler.getInstance().getSaveAwsInfo(), Level.INFO);
-            scanner.nextLine();
-            ConfigHandler.getInstance().reloadValues();
-            if (Main.getPollyHandler() != null) {
-                return;
-            }
+        Main.setPollyHandler(createPollyHandler());
+        if (Main.getPollyHandler() != null) {
+            return;
         }
+        Logging.logAndPrint(logger, LocaleHandler.getInstance().getSaveAwsInfo(), Level.INFO);
+        System.exit(-1);
     }
 }

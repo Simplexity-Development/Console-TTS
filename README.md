@@ -1,28 +1,7 @@
-# Command Line TTS
-I will keep on accidentally referring to it as CLI TTS - so I just named the repo that to get it out of the way
-
-This is a basic Command Line based Text-To-Speech application.
-This application interfaces with Amazon Polly, and requires the use of standard voices.
-It has the ability to use [SSML](https://docs.aws.amazon.com/polly/latest/dg/supportedtags.html) (Speech Synthesis
-Markup Language), and the configuration has the ability to set up text to replace.
-
-## Replace Text
-
-The replace text section of the configuration allows you to set specific strings that will be replaced by other strings.
-This can be very useful for when you want to use SSML and set a shorthand for the beginning tag and ending tag.
-This can also be useful for having 'macros'/'commands' with different responses
-
-> **Note**:
-> <br>It is advised to only replace specific combinations of characters, and not common combinations/single characters
-> <br>For example don't replace `"e"` with `"𝔼"` otherwise the tag `"__"` will break because it will now
-> be `<𝔼mphasis l𝔼v𝔼l=\"strong\">` instead of `<emphasis level=\"strong\">`
-> <br>You can mitigate this issue by surrounding the letter with a space like this: `" e "`
-
-## Voice Prefixes
-
-The voice prefixes section allows you to set a prefix that will switch the voice to a specific Polly voice.
-Then, if you use that prefix at the beginning of a message, the application will switch to that voice until another
-prefix is used.
+# Console Text To Speech
+This program is meant to be an intuitive text-to-speech program that runs on command line. 
+  This was made with streamers who struggle speaking in mind - but is open to use for many other things.
+  This uses SSML - and uses markdown-esque formatting for the effects.
 
 ### AWS
 Using this requires an AWS account - https://aws.amazon.com/
@@ -34,47 +13,80 @@ References:
 - [Amazon Polly Description of Limits/Price](https://aws.amazon.com/polly/pricing/)
 - [Setting up a user and how to use IAM](https://docs.aws.amazon.com/signer/latest/developerguide/iam-setup.html)
 
+## Voice Prefixes
+
+The voice prefixes section allows you to set a prefix that will switch the voice to a specific Polly voice.
+Then, if you use that prefix at the beginning of a message, the application will switch to that voice until another prefix is used. 
+Prefixes will be matched ignoring case and even if there's a `:` or `-` after it.
+
+## Speech Effect Markdown
+
+This is where the marks for the effects are declared. [SSML Tags Can Be Found Here](https://docs.aws.amazon.com/polly/latest/dg/supportedtags.html) - Currently self-closing tags such as 'break' are not supported
+Effect declaration in the config looks like this:
+
+```yml
+speech-effect-markdown:
+  "!": //The character(s) that will be on either side of the text you want the effect to be used on
+    type: tag-name     //This is the tag name, might have 'amazon:' before it
+    attribute: value   // Any customization settings go after that, like "volume" and "loud"
+```
+
+By default, the markdown will be matched if surrounded by spaces or newlines/end of lines, but not if surrounded by other characters. 
+So you can have '.' and '..' as effect markdowns if you want
+
+
+## Text Replacements
+
+This is generic text replacement - it is run through a regex so that things aren't caught in the middle of a sentence. 
+
+## Other Settings
+
+**Server Port:**
+Used for the HTTP server the amazon requests are being made from. You shouldn't need to change this unless you already know what you're doing
 
 ### Default configuration
 
-```HOCON
-aws-region= "US_EAST_1"
-aws-access-id= ""
-aws-secret-key= ""
-connect-to-twitch= false
-twitch-channel= ""
-twitch-app-client-id= ""
-twitch-app-client-secret= ""
-replace-text {
-  "**"= "<prosody volume=\"x-loud\" pitch=\"low\" rate=\"slow\">"
-  "/*"= "</prosody>"
-  "*/"= "</prosody>"
-  "~~"= "<amazon:effect name=\"whispered\">"
-  "/~"= "</amazon:effect>"
-  "~/"= "</amazon:effect>"
-  "__"= "<emphasis level=\"strong\">"
-  "/_"= "</emphasis>"
-  "_/"= "</emphasis>"
-  "++"= "<prosody volume=\"x-loud\" rate=\"x-fast\" pitch=\"x-high\">"
-  "/+"= "</prosody>"
-  "+/"= "</prosody>"
-  "!!"= "<say-as interpret-as=\"expletive\">"
-  "/!"= "</say-as>"
-  "!/"= "</say-as>"
-  " - "= "<break time=\"300ms\"/>"
-  "<3"= "heart emoji"
-}
-default-voice= "Brian"
-voice-prefixes {
-  "Sal:"= "Salli"
-  "Kim:"= "Kimberly"
-  "Bri:"= "Brian"
-}
+```yml
+aws-api:
+  access-key: ""
+  secret-key: ""
+  region: "US_EAST_1"
+  default-voice: "Brian"
+  voice-prefixes:
+    Sal: Salli
+    Kim: Kimberly
+    Bri: Brian
+speech-effect-markdown:
+  "**":
+    type: prosody
+    volume: x-loud
+    pitch: low
+    rate: slow
+  "~~":
+    type: amazon:effect
+    name: whispered
+  "__":
+    type: emphasis
+    level: strong
+  "*":
+    type: prosody
+    volume: x-loud
+    rate: x-fast
+    pitch: x-high
+  "||":
+    type: say-as
+    interpret-as: expletive
+text-replacements:
+    "<3": "heart emoji"
+internal-settings:
+  server-port: 3000
+
 ```
 
 Todo:
 
-- [ ] Make closing tags less annoying
+- [x] Make closing tags less annoying
 - [x] Manage exceptions better
 - [x] Probably unify the config into one file
 - [ ] Add configuration for audio output destination
+- [ ] Add more Polly configuration (how dates are said, numbers, etc)

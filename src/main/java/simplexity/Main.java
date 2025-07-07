@@ -13,12 +13,12 @@ import simplexity.commands.ReloadCommand;
 import simplexity.config.ConfigHandler;
 import simplexity.config.LocaleHandler;
 import simplexity.config.YmlConfig;
+import simplexity.console.InputHandler;
+import simplexity.console.Logging;
 import simplexity.httpserver.LocalServer;
-import simplexity.util.Logging;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Scanner;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -27,15 +27,13 @@ public class Main {
     private static CommandManager commandManager;
     public static PollyHandler pollyHandler;
     private static SpeechHandler speechHandler;
-    public static Scanner scanner;
+    private static InputHandler inputHandler;
+
     public static boolean runApp = true;
 
     @SuppressWarnings("CallToPrintStackTrace")
     public static void main(String[] args) {
         Logging.log(logger, "Starting application", Level.INFO);
-        scanner = new Scanner(System.in);
-        commandManager = new CommandManager();
-        registerCommands(commandManager);
         File file = new File("config/config.yml");
         File localeFile = new File("config/locale.yml");
         try {
@@ -48,15 +46,13 @@ public class Main {
         }
         LocaleHandler.getInstance().reloadMessages();
         ConfigHandler.getInstance().reloadValues();
+        commandManager = new CommandManager();
+        speechHandler = new SpeechHandler();
+        registerCommands(commandManager);
         PollySetup.setupPollyAndSpeech();
         LocalServer.run();
-        while (runApp) {
-            String input = scanner.nextLine();
-            if (!commandManager.runCommand(input)) {
-                input = stripInvalidCharacters(input);
-                speechHandler.processSpeech(input);
-            }
-        }
+        inputHandler = new InputHandler(commandManager, speechHandler);
+        inputHandler.runLoop();
     }
 
     private static void registerCommands(CommandManager commandManager) {
@@ -65,14 +61,13 @@ public class Main {
         commandManager.registerCommand(new ReloadCommand("--reload", "Reloads the configuration"));
     }
 
-    private static String stripInvalidCharacters(String input) {
-        if (input == null) return null;
-        return input.replaceAll("\u001B\\[[;\\d]*[ -/]*[@-~]", "")
-                .replaceAll("\\p{C}", "");
-    }
 
     public static CommandManager getCommandManager() {
         return commandManager;
+    }
+
+    public static InputHandler getInputHandler() {
+        return inputHandler;
     }
 
     public static PollyHandler getPollyHandler() {
@@ -87,15 +82,11 @@ public class Main {
         pollyHandler = pollyHandlerToSet;
     }
 
-    public static Scanner getScanner() {
-        return scanner;
-    }
-
-    public static YmlConfig getConfig(){
+    public static YmlConfig getConfig() {
         return config;
     }
 
-    public static YmlConfig getLocaleConfig(){
+    public static YmlConfig getLocaleConfig() {
         return localeConfig;
     }
 

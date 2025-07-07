@@ -4,7 +4,7 @@ import org.slf4j.event.Level;
 import simplexity.Main;
 import simplexity.config.LocaleHandler;
 import simplexity.httpserver.LocalServer;
-import simplexity.util.Logging;
+import simplexity.console.Logging;
 
 public class ExitCommand extends Command {
 

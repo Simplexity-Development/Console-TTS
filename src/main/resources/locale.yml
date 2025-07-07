@@ -3,10 +3,10 @@ error:
   message-not-parsable: "<br-red>ERROR: Message was not parsable, attempted to send: %message%</color>"
   unknown-command: "<br-red>ERROR: '%command%' is not a recognized command</color>"
   null-aws-credentials: "<br-red>ERROR: AWS credentials are null, please fill them out</color>"
-  save-aws-info: "<br-yellow>Please save your AWS credentials in tts-config.conf, then click enter to continue</color>"
+  save-aws-info: "<br-yellow>Please save your AWS credentials in config.yml, then start the application again</color>"
 help:
   header: "<br-cyan>Console Text To Speech</color>"
   commands: "<blue>%command_name%</color> <white>-</color> <br-blue>%command_description%</color>"
 feedback:
   reload: "<green>Config reloaded</color>"
-  shutting-down: "<br-yellow>CLI Text To Speech is closing...</color>"
+  shutting-down: "<br-yellow>Console Text To Speech is closing...</color>"

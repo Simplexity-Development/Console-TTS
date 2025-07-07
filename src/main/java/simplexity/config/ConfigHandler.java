@@ -10,7 +10,7 @@ import simplexity.Main;
 import simplexity.config.rules.SpeechEffectRule;
 import simplexity.config.rules.TextReplaceRule;
 import simplexity.config.rules.VoicePrefixRule;
-import simplexity.util.Logging;
+import simplexity.console.Logging;
 
 import java.util.HashSet;
 import java.util.Map;

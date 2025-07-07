@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import simplexity.config.LocaleHandler;
-import simplexity.util.Logging;
+import simplexity.console.Logging;
 
 import java.util.HashMap;
 

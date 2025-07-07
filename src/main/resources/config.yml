@@ -27,10 +27,7 @@ speech-effect-markdown:
   "||":
     type: say-as
     interpret-as: expletive
-
-internal-settings:
-  server-port: 3000
-
-
 text-replacements:
     "<3": "heart emoji"
+internal-settings:
+  server-port: 3000

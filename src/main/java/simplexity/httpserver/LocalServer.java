@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import simplexity.config.ConfigHandler;
 import simplexity.config.LocaleHandler;
-import simplexity.util.Logging;
+import simplexity.console.Logging;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;

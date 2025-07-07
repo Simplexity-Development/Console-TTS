@@ -16,7 +16,7 @@ import simplexity.config.LocaleHandler;
 import simplexity.config.rules.SpeechEffectRule;
 import simplexity.config.rules.TextReplaceRule;
 import simplexity.config.rules.VoicePrefixRule;
-import simplexity.util.Logging;
+import simplexity.console.Logging;
 
 import java.io.InputStream;
 

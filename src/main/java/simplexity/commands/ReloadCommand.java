@@ -7,9 +7,10 @@ import simplexity.Main;
 import simplexity.config.ConfigHandler;
 import simplexity.config.LocaleHandler;
 import simplexity.httpserver.LocalServer;
-import simplexity.util.Logging;
+import simplexity.console.Logging;
 
 import java.io.IOException;
+import java.util.Arrays;
 
 public class ReloadCommand extends Command {
 
@@ -29,7 +30,7 @@ public class ReloadCommand extends Command {
             LocaleHandler.getInstance().reloadMessages();
         } catch (IOException e) {
             Logging.logAndPrint(logger, "Fatal Error Reloading Config Files", Level.WARN);
-            Logging.logAndPrint(logger, e.getStackTrace().toString(), Level.WARN);
+            Logging.logAndPrint(logger, Arrays.toString(e.getStackTrace()), Level.WARN);
             System.exit(-1);
         }
         Logging.log(logger, "Stopping local server", Level.INFO);

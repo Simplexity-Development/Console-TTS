@@ -5,7 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import simplexity.Main;
 import simplexity.config.LocaleHandler;
-import simplexity.util.Logging;
+import simplexity.console.Logging;
 
 public class HelpCommand extends Command {
     private static final Logger logger = LoggerFactory.getLogger(HelpCommand.class);
