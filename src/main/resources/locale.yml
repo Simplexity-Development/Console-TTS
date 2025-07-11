@@ -4,9 +4,18 @@ error:
   unknown-command: "<br-red>ERROR: '%command%' is not a recognized command</color>"
   null-aws-credentials: "<br-red>ERROR: AWS credentials are null, please fill them out</color>"
   save-aws-info: "<br-yellow>Please save your AWS credentials in config.yml, then start the application again</color>"
+  auth-server-failed: "<br-red>ERROR: Auth server initialization failed, please check logs for more info</color>"
+  authorization-failed: "<br-red>ERROR: Authorization failed. Please check logs for more info</color>"
+  refresh-auth-failed: "<br-red>ERROR: Failed to refresh authorization token, please check logs for more info</color>"
+  initialization-failed: "<br-red>ERROR: Failed to initialize Twitch Client</color>"
+  unable-to-check-auth: "<br-red>ERROR: Failed to connect to Twitch to check authorization</color>"
+  unable-to-open-auth-page: "<br-red>ERROR: Unable to open auth page</color>"
+  no-refresh-token-provided: "<br-red>ERROR: No refresh token was found - please clear the twitch tokens and go through initialization again</color>"
 help:
   header: "<br-cyan>Console Text To Speech</color>"
   commands: "<blue>%command_name%</color> <white>-</color> <br-blue>%command_description%</color>"
 feedback:
+  refreshing-token: "<br-yellow>Twitch Auth token has expired - Attempting to refresh token..."
+  token-refreshed: "<br-green>Successfully Refreshed Twitch Auth Token</color>"
   reload: "<green>Config reloaded</color>"
   shutting-down: "<br-yellow>Console Text To Speech is closing...</color>"

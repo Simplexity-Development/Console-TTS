@@ -24,8 +24,10 @@ public class ConfigHandler {
 
     private Region awsRegion;
     private VoiceId defaultVoice;
-    private String awsAccessID, awsSecretKey;
-    private Integer serverPort;
+    private String awsAccessID, awsSecretKey, twitchChannel, twitchClientId, twitchClientSecret, twitchAccessToken,
+            twitchRefreshToken, twitchChatFormat, twitchUsername;
+    private Integer serverPort, authPort;
+    private Boolean useTwitch;
     private static ConfigHandler instance;
 
     public static ConfigHandler getInstance() {
@@ -37,23 +39,26 @@ public class ConfigHandler {
 
     public void reloadValues() {
         YmlConfig config = Main.getConfig();
+        YmlConfig keyConfig = Main.getTokenConfig();
         reloadSpeechEffects(config);
         reloadAwsValues(config);
+        reloadVoicePrefixes(config);
         reloadTextReplace(config);
-        serverPort = config.getOption("internal-settings.server-port", Integer.class, 3000);
+        reloadTwitchValues(config);
+        reloadKeys(keyConfig);
     }
 
-    public void reloadAwsValues(YmlConfig config) {
+    private void reloadAwsValues(YmlConfig config) {
         Logging.log(logger, "Reloading AWS Values", Level.INFO);
-        awsAccessID = config.getOption("aws-api.access-key", String.class, "");
-        awsSecretKey = config.getOption("aws-api.secret-key", String.class, "");
+
         Regions region = config.getOption("aws-api.region", Regions.class, Regions.US_EAST_1);
         if (region != null) awsRegion = Region.getRegion(region);
         defaultVoice = config.getOption("aws-api.default-voice", VoiceId.class, VoiceId.Brian);
-        reloadVoicePrefixes(config);
+        serverPort = config.getOption("internal-settings.server-port", Integer.class, 3000);
+
     }
 
-    public void reloadVoicePrefixes(YmlConfig config) {
+    private void reloadVoicePrefixes(YmlConfig config) {
         Logging.log(logger, "Reloading Voice Prefixes", Level.INFO);
         voicePrefixRules.clear();
         for (String key : config.getKeys("aws-api.voice-prefixes")) {
@@ -70,7 +75,7 @@ public class ConfigHandler {
         }
     }
 
-    public void reloadSpeechEffects(YmlConfig config) {
+    private void reloadSpeechEffects(YmlConfig config) {
         Logging.log(logger, "Reloading Speech Effects", Level.INFO);
         effectRules.clear();
         for (String key : config.getKeys("speech-effect-markdown")) {
@@ -94,7 +99,7 @@ public class ConfigHandler {
         }
     }
 
-    public void reloadTextReplace(YmlConfig config) {
+    private void reloadTextReplace(YmlConfig config) {
         Logging.log(logger, "Reloading Text Replacements", Level.INFO);
         textReplaceRules.clear();
         for (String key : config.getKeys("text-replacements")) {
@@ -103,6 +108,27 @@ public class ConfigHandler {
             TextReplaceRule replaceRule = new TextReplaceRule(key, replacementText);
             textReplaceRules.add(replaceRule);
         }
+    }
+
+    private void reloadTwitchValues(YmlConfig config) {
+        Logging.log(logger, "Reloading twitch values", Level.INFO);
+        useTwitch = config.getOption("twitch-api.enable", Boolean.class, Boolean.FALSE);
+        if (!useTwitch) return;
+        twitchChannel = config.getOption("twitch-api.channel", String.class);
+        twitchChatFormat = config.getOption("twitch-api.chat-format", String.class, "%user% >> %message%");
+        twitchUsername = config.getOption("twitch-api.username", String.class, "");
+        authPort = config.getOption("internal-settings.twitch-auth-port", Integer.class, 8080);
+
+    }
+
+    private void reloadKeys(YmlConfig config) {
+        Logging.log(logger, "Loading Keys", Level.INFO);
+        awsAccessID = config.getOption("keys.aws.access-key", String.class, "");
+        awsSecretKey = config.getOption("keys.aws.secret-key", String.class, "");
+        twitchClientId = config.getOption("keys.twitch.client-id", String.class, "");
+        twitchClientSecret = config.getOption("keys.twitch.client-secret", String.class, "");
+        twitchAccessToken = config.getOption("tokens.twitch.access-token", String.class, "");
+        twitchRefreshToken = config.getOption("tokens.twitch.refresh-token", String.class, "");
     }
 
 
@@ -136,5 +162,41 @@ public class ConfigHandler {
 
     public Integer getServerPort() {
         return serverPort;
+    }
+
+    public String getTwitchChannel() {
+        return twitchChannel;
+    }
+
+    public String getTwitchClientId() {
+        return twitchClientId;
+    }
+
+    public String getTwitchClientSecret() {
+        return twitchClientSecret;
+    }
+
+    public Integer getAuthPort() {
+        return authPort;
+    }
+
+    public Boolean shouldUseTwitch() {
+        return useTwitch;
+    }
+
+    public String getTwitchAccessToken() {
+        return twitchAccessToken;
+    }
+
+    public String getTwitchRefreshToken() {
+        return twitchRefreshToken;
+    }
+
+    public String getTwitchChatFormat() {
+        return twitchChatFormat;
+    }
+
+    public String getTwitchUsername() {
+        return twitchUsername;
     }
 }

@@ -1,12 +1,15 @@
 aws-api:
-  access-key: ""
-  secret-key: ""
   region: "US_EAST_1"
   default-voice: "Brian"
   voice-prefixes:
     Sal: Salli
     Kim: Kimberly
     Bri: Brian
+twitch-api:
+  enable: false
+  channel: ""
+  chat-format: "%user% >> %message%"
+  username: ""
 speech-effect-markdown:
   "**":
     type: prosody
@@ -31,3 +34,4 @@ text-replacements:
     "<3": "heart emoji"
 internal-settings:
   server-port: 3000
+  twitch-auth-port: 8080

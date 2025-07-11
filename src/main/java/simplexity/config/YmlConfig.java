@@ -326,7 +326,7 @@ public class YmlConfig {
         return current;
     }
 
-    private void setValue(String path, Object value) {
+    public void setValue(String path, Object value) {
         String[] pathParts = path.split("\\.");
         Map<String, Object> current = root;
         for (int i = 0; i < pathParts.length - 1; i++) {
