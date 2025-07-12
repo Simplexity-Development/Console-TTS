@@ -11,6 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
 import simplexity.Main;
+import simplexity.audio.virtualmic.PlatformAudioRouter;
 import simplexity.config.ConfigHandler;
 import simplexity.config.LocaleHandler;
 import simplexity.config.rules.SpeechEffectRule;
@@ -18,7 +19,10 @@ import simplexity.config.rules.TextReplaceRule;
 import simplexity.config.rules.VoicePrefixRule;
 import simplexity.console.Logging;
 
+import javax.sound.sampled.AudioFormat;
+import javax.sound.sampled.SourceDataLine;
 import java.io.InputStream;
+import java.util.Arrays;
 
 public class SpeechHandler {
     private static final Logger logger = LoggerFactory.getLogger(SpeechHandler.class);
@@ -50,8 +54,12 @@ public class SpeechHandler {
             return;
         }
 
-        //play it
-        playSpeech(speechStream);
+        if (ConfigHandler.getInstance().getUseVirtualMic()) {
+            playToVirtualMic(speechStream);
+
+        } else {
+            playToDefaultOutput(speechStream);
+        }
     }
 
     /**
@@ -77,12 +85,18 @@ public class SpeechHandler {
 
     public InputStream synthesizeSSMLSpeech(String text, VoiceId voice) {
         String ssmlText = "<speak>" + text + "</speak>";
+        OutputFormat format;
+        if (ConfigHandler.getInstance().getUseVirtualMic()) {
+            format = OutputFormat.Pcm;
+        } else {
+            format = OutputFormat.Mp3;
+        }
         try {
             SynthesizeSpeechRequest request = new SynthesizeSpeechRequest()
                     .withText(ssmlText)
                     .withTextType(TextType.Ssml)
                     .withVoiceId(voice)
-                    .withOutputFormat(OutputFormat.Mp3);
+                    .withOutputFormat(format);
             SynthesizeSpeechResult result = Main.getPollyHandler().getPolly().synthesizeSpeech(request);
             return result.getAudioStream();
         } catch (RuntimeException exception) {
@@ -92,11 +106,17 @@ public class SpeechHandler {
     }
 
     public InputStream synthesizeSpeech(String text, VoiceId voice) {
+        OutputFormat format;
+        if (ConfigHandler.getInstance().getUseVirtualMic()) {
+            format = OutputFormat.Pcm;
+        } else {
+            format = OutputFormat.Mp3;
+        }
         try {
             SynthesizeSpeechRequest request = new SynthesizeSpeechRequest()
                     .withText(text)
                     .withVoiceId(voice)
-                    .withOutputFormat(OutputFormat.Mp3);
+                    .withOutputFormat(format);
             SynthesizeSpeechResult result = Main.getPollyHandler().getPolly().synthesizeSpeech(request);
             return result.getAudioStream();
         } catch (RuntimeException exception) {
@@ -108,15 +128,38 @@ public class SpeechHandler {
     /**
      * Plays the text as speech
      */
-    public void playSpeech(InputStream speechStream) {
-        AdvancedPlayer player;
+    public void playToDefaultOutput(InputStream speechStream) {
         try {
-            player = new AdvancedPlayer(speechStream, FactoryRegistry.systemRegistry().createAudioDevice());
+            AdvancedPlayer player = new AdvancedPlayer(speechStream, FactoryRegistry.systemRegistry().createAudioDevice());
             player.play();
         } catch (Exception exception) {
             Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", exception.getMessage()), Level.ERROR);
         }
     }
+
+    private void playToVirtualMic(InputStream speechStream) {
+        try {
+            AudioFormat format = new AudioFormat(16000f, 16, 1, true, false);
+            SourceDataLine line = PlatformAudioRouter.getOutputLine(format);
+            line.start();
+
+            byte[] buffer = new byte[4096];
+            int bytesRead;
+            while ((bytesRead = speechStream.read(buffer)) != -1) {
+                line.write(buffer, 0, bytesRead);
+            }
+
+            line.drain();
+            line.stop();
+            line.close();
+
+        } catch (Exception e) {
+            Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", e.getMessage()), Level.ERROR);
+            Logging.log(logger, Arrays.toString(e.getStackTrace()), Level.ERROR);
+        }
+
+    }
+
 
     /**
      * Logs errors during speech synthesis.

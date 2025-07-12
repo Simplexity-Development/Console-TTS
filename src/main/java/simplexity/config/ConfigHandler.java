@@ -28,9 +28,9 @@ public class ConfigHandler {
     private Region awsRegion;
     private VoiceId defaultVoice;
     private String awsAccessID, awsSecretKey, twitchChannel, twitchClientId, twitchClientSecret, twitchAccessToken,
-            twitchRefreshToken, twitchChatFormat, twitchUsername;
+            twitchRefreshToken, twitchUsername;
     private Integer serverPort, authPort;
-    private Boolean useTwitch;
+    private Boolean useTwitch, useVirtualMic;
     private static ConfigHandler instance;
 
     public static ConfigHandler getInstance() {
@@ -50,6 +50,7 @@ public class ConfigHandler {
         reloadTwitchValues(config);
         reloadChatFormats(config);
         reloadKeys(keyConfig);
+        reloadTtsOptions(config);
     }
 
     private void reloadAwsValues(YmlConfig config) {
@@ -122,7 +123,7 @@ public class ConfigHandler {
         for (String key : keySet) {
             String formatString = config.getOption("twitch-api.chat." + key + ".format", String.class, "%user% ➜ %message%");
             int weight = config.getOption("twitch-api.chat." + key + ".weight", Integer.class, 0);
-            String permissionString = config.getOption("twitch-api.chat." + key + "permission", String.class, "EVERYONE");
+            String permissionString = config.getOption("twitch-api.chat." + key + ".permission", String.class, "EVERYONE");
             CommandPermission permission;
             try {
                 permission = CommandPermission.valueOf(permissionString);
@@ -153,6 +154,11 @@ public class ConfigHandler {
         twitchClientSecret = config.getOption("keys.twitch.client-secret", String.class, "");
         twitchAccessToken = config.getOption("tokens.twitch.access-token", String.class, "");
         twitchRefreshToken = config.getOption("tokens.twitch.refresh-token", String.class, "");
+    }
+
+    private void reloadTtsOptions(YmlConfig config){
+        Logging.log(logger, "Loading tts options", Level.INFO);
+        useVirtualMic = config.getOption("tts.use-virtual-mic", Boolean.class, Boolean.FALSE);
     }
 
 
@@ -220,11 +226,11 @@ public class ConfigHandler {
         return twitchRefreshToken;
     }
 
-    public String getTwitchChatFormat() {
-        return twitchChatFormat;
-    }
-
     public String getTwitchUsername() {
         return twitchUsername;
+    }
+
+    public Boolean getUseVirtualMic() {
+        return useVirtualMic;
     }
 }

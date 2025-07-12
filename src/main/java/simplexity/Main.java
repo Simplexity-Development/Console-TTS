@@ -34,27 +34,13 @@ public class Main {
     private static CommandManager commandManager;
     public static PollyHandler pollyHandler;
     private static SpeechHandler speechHandler;
-    private static TwitchClient twitchClient;
+    private static TwitchClient twitchClient = null;
 
     public static boolean runApp = true;
 
-    @SuppressWarnings("CallToPrintStackTrace")
     public static void main(String[] args) {
         Logging.log(logger, "Starting application", Level.INFO);
-        File configFile = new File("config/config.yml");
-        File localeFile = new File("config/locale.yml");
-        File tokenFile = new File("config/tokens.yml");
-        try {
-            config = new YmlConfig(configFile, "config.yml");
-            localeConfig = new YmlConfig(localeFile, "locale.yml");
-            tokenConfig = new YmlConfig(tokenFile, "tokens.yml");
-        } catch (IOException e) {
-            System.out.println("Fatal Error: Config was unable to be generated.");
-            e.printStackTrace();
-            return;
-        }
-        LocaleHandler.getInstance().reloadMessages();
-        ConfigHandler.getInstance().reloadValues();
+        initializeConfigs();
         commandManager = new CommandManager();
         speechHandler = new SpeechHandler();
         registerCommands(commandManager);
@@ -67,13 +53,30 @@ public class Main {
         if (ConfigHandler.getInstance().shouldUseTwitch()) {
             twitchClient = TwitchInitializer.getTwitchClient();
             twitchClient.getChat().joinChannel(ConfigHandler.getInstance().getTwitchChannel());
-            ChatConsoleManager consoleManager = new ChatConsoleManager(twitchClient, ConfigHandler.getInstance().getTwitchUsername(), speechHandler);
-            try {
-                consoleManager.start();
-            } catch (IOException e) {
-                Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", Arrays.toString(e.getStackTrace())), Level.ERROR);
-            }
         }
+        ChatConsoleManager consoleManager = new ChatConsoleManager(twitchClient, ConfigHandler.getInstance().getTwitchUsername(), speechHandler);
+        try {
+            consoleManager.start();
+        } catch (IOException e) {
+            Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", Arrays.toString(e.getStackTrace())), Level.ERROR);
+        }
+    }
+
+
+    private static void initializeConfigs() {
+        File configFile = new File("config/config.yml");
+        File localeFile = new File("config/locale.yml");
+        File tokenFile = new File("config/tokens.yml");
+        try {
+            config = new YmlConfig(configFile, "config.yml");
+            localeConfig = new YmlConfig(localeFile, "locale.yml");
+            tokenConfig = new YmlConfig(tokenFile, "tokens.yml");
+        } catch (IOException e) {
+            Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", Arrays.toString(e.getStackTrace())), Level.ERROR);
+            System.exit(-1);
+        }
+        LocaleHandler.getInstance().reloadMessages();
+        ConfigHandler.getInstance().reloadValues();
     }
 
     private static void registerCommands(CommandManager commandManager) {

@@ -43,3 +43,5 @@ text-replacements:
 internal-settings:
   server-port: 3000
   twitch-auth-port: 8080
+tts:
+  use-virtual-mic: false

@@ -44,7 +44,9 @@ public class ChatConsoleManager {
                 .parser(new DefaultParser())
                 .build();
 
-        chatListener();
+        if (twitchClient != null) {
+            chatListener();
+        }
         startInputLoop();
     }
 
@@ -58,7 +60,9 @@ public class ChatConsoleManager {
                         continue;
                     }
 
-                    twitchClient.getChat().sendMessage(username, line);
+                    if (twitchClient != null) {
+                        twitchClient.getChat().sendMessage(username, line);
+                    }
                     speechHandler.processSpeech(line);
                 } catch (UserInterruptException | EndOfFileException e) {
                     break;
