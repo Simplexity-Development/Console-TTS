@@ -1,30 +1,32 @@
 package simplexity.twitch;
 
 import com.github.twitch4j.TwitchClient;
-import com.github.twitch4j.eventsub.events.ChannelChatMessageEvent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.event.Level;
+import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
+import com.github.twitch4j.common.enums.CommandPermission;
+import org.jline.reader.EndOfFileException;
+import org.jline.reader.LineReader;
+import org.jline.reader.LineReaderBuilder;
+import org.jline.reader.UserInterruptException;
+import org.jline.reader.impl.DefaultParser;
+import org.jline.terminal.Terminal;
+import org.jline.terminal.TerminalBuilder;
+import simplexity.Main;
 import simplexity.amazon.SpeechHandler;
+import simplexity.config.ChatFormat;
 import simplexity.config.ConfigHandler;
-import simplexity.config.LocaleHandler;
-import simplexity.console.Logging;
+import simplexity.console.ColorTags;
 
-import java.util.Arrays;
-import java.util.Scanner;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.atomic.AtomicReference;
+import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ChatConsoleManager {
 
     private final TwitchClient twitchClient;
     private final String username;
     private final SpeechHandler speechHandler;
-    private static final Logger logger = LoggerFactory.getLogger(ChatConsoleManager.class);
 
-    private final BlockingQueue<String> ttsQueue = new LinkedBlockingQueue<>();
-    private final AtomicReference<String> currentInput = new AtomicReference<>("");
+    private LineReader reader;
 
     public ChatConsoleManager(TwitchClient twitchClient, String username, SpeechHandler speechHandler) {
         this.twitchClient = twitchClient;
@@ -32,55 +34,66 @@ public class ChatConsoleManager {
         this.speechHandler = speechHandler;
     }
 
-    public void start(){
+    public void start() throws IOException {
+        Terminal terminal = TerminalBuilder.builder()
+                .system(true)
+                .build();
+
+        reader = LineReaderBuilder.builder()
+                .terminal(terminal)
+                .parser(new DefaultParser())
+                .build();
+
         chatListener();
-        startConsoleInput();
-        startTtsProcessor();
+        startInputLoop();
     }
 
-    private void chatListener(){
-        twitchClient.getEventManager().onEvent(ChannelChatMessageEvent.class, event -> {
-            String user = event.getChatterUserName();
-            String message = event.getMessage().getCleanedText();
-            String formattedMessage = String.format(ConfigHandler.getInstance().getTwitchChatFormat().replace("%user%", user).replace("%message%", message));
-
-            synchronized (System.out) {
-                System.out.print("\r" + formattedMessage + "\n");
-                System.out.print("> " + currentInput.get());
-            }
-        });
-    }
-
-    private void startConsoleInput(){
+    private void startInputLoop() {
         Thread inputThread = new Thread(() -> {
-            Scanner scanner = new Scanner(System.in);
             while (true) {
-                System.out.println("> ");
-                String input = scanner.nextLine();
-                currentInput.set("");
+                try {
+                    String line = reader.readLine("> ");
+                    if (line.trim().isEmpty()) continue;
+                    if (Main.getCommandManager().runCommand(line)) {
+                        continue;
+                    }
 
-                if (input.trim().isEmpty()) continue;
-
-                twitchClient.getChat().sendMessage(username, input);
-                ttsQueue.offer(input);
+                    twitchClient.getChat().sendMessage(username, line);
+                    speechHandler.processSpeech(line);
+                } catch (UserInterruptException | EndOfFileException e) {
+                    break;
+                }
             }
         });
         inputThread.setDaemon(true);
         inputThread.start();
     }
 
-    private void startTtsProcessor() {
-        Thread ttsThread = new Thread(() -> {
-            while (true) {
-                try {
-                    String message = ttsQueue.take();
-                    speechHandler.processSpeech(message);
-                } catch (Exception e) {
-                    Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", Arrays.toString(e.getStackTrace())), Level.ERROR);
-                }
-            }
+    private void chatListener() {
+        twitchClient.getEventManager().onEvent(ChannelMessageEvent.class, event -> {
+            String user = event.getUser().getName();
+            String message = event.getMessage();
+            String formattedMessage = getFormat(user, message, event.getPermissions());
+            String colorParsed = ColorTags.parse(formattedMessage);
+            reader.printAbove(colorParsed);
+            //todo have options for tts when things happen
         });
-        ttsThread.setDaemon(true);
-        ttsThread.start();
     }
+
+    private String getFormat(String user, String message, Set<CommandPermission> permissions) {
+        int weight = 0;
+        ChatFormat formatToUse = null;
+        HashSet<ChatFormat> formats = ConfigHandler.getInstance().getChatFormats();
+        for (CommandPermission permission : permissions) {
+            for (ChatFormat format : formats) {
+                if (!format.getPermission().equals(permission)) continue;
+                if (weight > format.getWeight()) continue;
+                weight = format.getWeight();
+                formatToUse = format;
+            }
+        }
+        if (formatToUse == null) return String.format("%s ➜ %s", user, message);
+        return formatToUse.applyFormat(user, message);
+    }
+
 }

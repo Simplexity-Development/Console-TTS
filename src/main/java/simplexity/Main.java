@@ -14,7 +14,6 @@ import simplexity.commands.ReloadCommand;
 import simplexity.config.ConfigHandler;
 import simplexity.config.LocaleHandler;
 import simplexity.config.YmlConfig;
-import simplexity.console.InputHandler;
 import simplexity.console.Logging;
 import simplexity.httpserver.AuthServer;
 import simplexity.httpserver.LocalServer;
@@ -25,6 +24,7 @@ import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
 
 public class Main {
     private static final Logger logger = LoggerFactory.getLogger(Main.class);
@@ -35,7 +35,6 @@ public class Main {
     public static PollyHandler pollyHandler;
     private static SpeechHandler speechHandler;
     private static TwitchClient twitchClient;
-    private static InputHandler inputHandler;
 
     public static boolean runApp = true;
 
@@ -69,10 +68,12 @@ public class Main {
             twitchClient = TwitchInitializer.getTwitchClient();
             twitchClient.getChat().joinChannel(ConfigHandler.getInstance().getTwitchChannel());
             ChatConsoleManager consoleManager = new ChatConsoleManager(twitchClient, ConfigHandler.getInstance().getTwitchUsername(), speechHandler);
-            consoleManager.start();
+            try {
+                consoleManager.start();
+            } catch (IOException e) {
+                Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", Arrays.toString(e.getStackTrace())), Level.ERROR);
+            }
         }
-        inputHandler = new InputHandler(commandManager, speechHandler);
-        inputHandler.runLoop();
     }
 
     private static void registerCommands(CommandManager commandManager) {
@@ -100,10 +101,6 @@ public class Main {
 
     public static CommandManager getCommandManager() {
         return commandManager;
-    }
-
-    public static InputHandler getInputHandler() {
-        return inputHandler;
     }
 
     public static PollyHandler getPollyHandler() {

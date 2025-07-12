@@ -8,8 +8,16 @@ aws-api:
 twitch-api:
   enable: false
   channel: ""
-  chat-format: "%user% >> %message%"
   username: ""
+  chat:
+    default:
+      format: "%user% ➜ %message%"
+      weight: 0
+      permission: EVERYONE
+    mod:
+      format: "<br-green>⚔ %user%</color> ➜ %message%"
+      weight: 10
+      permission: MODERATOR
 speech-effect-markdown:
   "**":
     type: prosody

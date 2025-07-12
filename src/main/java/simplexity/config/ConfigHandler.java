@@ -3,6 +3,7 @@ package simplexity.config;
 import com.amazonaws.regions.Region;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.polly.model.VoiceId;
+import com.github.twitch4j.common.enums.CommandPermission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
@@ -14,6 +15,7 @@ import simplexity.console.Logging;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 public class ConfigHandler {
 
@@ -21,6 +23,7 @@ public class ConfigHandler {
     private final HashSet<VoicePrefixRule> voicePrefixRules = new HashSet<>();
     private final HashSet<SpeechEffectRule> effectRules = new HashSet<>();
     private final HashSet<TextReplaceRule> textReplaceRules = new HashSet<>();
+    private final HashSet<ChatFormat> chatFormats = new HashSet<>();
 
     private Region awsRegion;
     private VoiceId defaultVoice;
@@ -45,6 +48,7 @@ public class ConfigHandler {
         reloadVoicePrefixes(config);
         reloadTextReplace(config);
         reloadTwitchValues(config);
+        reloadChatFormats(config);
         reloadKeys(keyConfig);
     }
 
@@ -110,12 +114,32 @@ public class ConfigHandler {
         }
     }
 
+    private void reloadChatFormats(YmlConfig config){
+        Logging.log(logger, "Reloading chat formats", Level.INFO);
+        chatFormats.clear();
+        Set<String> keySet = config.getKeys("twitch-api.chat");
+        if (keySet == null || keySet.isEmpty()) return;
+        for (String key : keySet) {
+            String formatString = config.getOption("twitch-api.chat." + key + ".format", String.class, "%user% ➜ %message%");
+            int weight = config.getOption("twitch-api.chat." + key + ".weight", Integer.class, 0);
+            String permissionString = config.getOption("twitch-api.chat." + key + "permission", String.class, "EVERYONE");
+            CommandPermission permission;
+            try {
+                permission = CommandPermission.valueOf(permissionString);
+            } catch (IllegalArgumentException e) {
+                Logging.log(logger, "Permission type: " + permissionString + " is invalid. Check https://twitch4j.github.io/javadoc/com/github/twitch4j/common/enums/CommandPermission.html for valid permissions", Level.WARN);
+                continue;
+            }
+            ChatFormat format = new ChatFormat(formatString, weight, permission);
+            chatFormats.add(format);
+        }
+    }
+
     private void reloadTwitchValues(YmlConfig config) {
         Logging.log(logger, "Reloading twitch values", Level.INFO);
         useTwitch = config.getOption("twitch-api.enable", Boolean.class, Boolean.FALSE);
         if (!useTwitch) return;
         twitchChannel = config.getOption("twitch-api.channel", String.class);
-        twitchChatFormat = config.getOption("twitch-api.chat-format", String.class, "%user% >> %message%");
         twitchUsername = config.getOption("twitch-api.username", String.class, "");
         authPort = config.getOption("internal-settings.twitch-auth-port", Integer.class, 8080);
 
@@ -158,6 +182,10 @@ public class ConfigHandler {
 
     public HashSet<TextReplaceRule> getTextReplaceRules() {
         return textReplaceRules;
+    }
+
+    public HashSet<ChatFormat> getChatFormats() {
+        return chatFormats;
     }
 
     public Integer getServerPort() {
