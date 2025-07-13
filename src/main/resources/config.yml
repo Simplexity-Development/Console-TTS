@@ -7,6 +7,9 @@ aws-api:
     Bri: Brian
 twitch-api:
   enable: false
+  messages:
+    send: false
+    clean-markdown: true
   channel: ""
   username: ""
   chat:

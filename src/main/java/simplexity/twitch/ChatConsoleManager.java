@@ -14,6 +14,8 @@ import simplexity.Main;
 import simplexity.amazon.SpeechHandler;
 import simplexity.config.ChatFormat;
 import simplexity.config.ConfigHandler;
+import simplexity.config.rules.SpeechEffectRule;
+import simplexity.config.rules.VoicePrefixRule;
 import simplexity.console.ColorTags;
 
 import java.io.IOException;
@@ -60,8 +62,12 @@ public class ChatConsoleManager {
                         continue;
                     }
 
-                    if (twitchClient != null) {
-                        twitchClient.getChat().sendMessage(username, line);
+                    if (twitchClient != null && ConfigHandler.getInstance().shouldSendMessages()) {
+                        String messageToSend = line;
+                        if (ConfigHandler.getInstance().shouldCleanMessages()) {
+                            messageToSend = cleanMessage(messageToSend);
+                        }
+                        twitchClient.getChat().sendMessage(username, messageToSend);
                     }
                     speechHandler.processSpeech(line);
                 } catch (UserInterruptException | EndOfFileException e) {
@@ -98,6 +104,19 @@ public class ChatConsoleManager {
         }
         if (formatToUse == null) return String.format("%s ➜ %s", user, message);
         return formatToUse.applyFormat(user, message);
+    }
+
+    private String cleanMessage(String input){
+        for (VoicePrefixRule prefixRule : ConfigHandler.getInstance().getVoicePrefixRules()) {
+            if (!prefixRule.matches(input)) continue;
+            input = prefixRule.applyRule(input);
+            break;
+        }
+        for (SpeechEffectRule effectRule : ConfigHandler.getInstance().getEffectRules()) {
+            if (!effectRule.matches(input)) continue;
+            input = effectRule.clearMarkdown(input);
+        }
+        return input;
     }
 
 }

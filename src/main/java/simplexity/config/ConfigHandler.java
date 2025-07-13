@@ -30,7 +30,7 @@ public class ConfigHandler {
     private String awsAccessID, awsSecretKey, twitchChannel, twitchClientId, twitchClientSecret, twitchAccessToken,
             twitchRefreshToken, twitchUsername;
     private Integer serverPort, authPort;
-    private Boolean useTwitch, useVirtualMic;
+    private Boolean useTwitch, useVirtualMic, sendMessages, cleanMessages;
     private static ConfigHandler instance;
 
     public static ConfigHandler getInstance() {
@@ -59,6 +59,7 @@ public class ConfigHandler {
         Regions region = config.getOption("aws-api.region", Regions.class, Regions.US_EAST_1);
         if (region != null) awsRegion = Region.getRegion(region);
         defaultVoice = config.getOption("aws-api.default-voice", VoiceId.class, VoiceId.Brian);
+        Logging.log(logger, String.format("Default voice: %s", defaultVoice.toString()), Level.INFO);
         serverPort = config.getOption("internal-settings.server-port", Integer.class, 3000);
 
     }
@@ -72,6 +73,7 @@ public class ConfigHandler {
             try {
                 VoiceId voiceId = VoiceId.valueOf(voiceName);
                 VoicePrefixRule prefixRule = new VoicePrefixRule(key, voiceId);
+                Logging.log(logger, String.format("Voice Prefix Rule: Prefix: %s, Voice: %s", key, voiceName), Level.INFO);
                 voicePrefixRules.add(prefixRule);
             } catch (IllegalArgumentException e) {
                 String message = "[Config] Config value at 'aws-api.voice-prefixes." + key + "' is invalid";
@@ -99,6 +101,7 @@ public class ConfigHandler {
             }
             openingBuilder.append(">");
             closingBuilder.append(">");
+            Logging.log(logger, String.format("Speech Effect Rule: Key: %s, Opening tag: %s, Closing tag: %s", key, openingBuilder, closingBuilder), Level.INFO);
             SpeechEffectRule effectRule = new SpeechEffectRule(key, openingBuilder.toString(), closingBuilder.toString());
             effectRules.add(effectRule);
         }
@@ -110,6 +113,7 @@ public class ConfigHandler {
         for (String key : config.getKeys("text-replacements")) {
             String replacementText = config.getOption("text-replacements." + key, String.class);
             if (replacementText == null) continue;
+            Logging.log(logger, String.format("Text Replace Rule: Key: %s, Replacement: %s", key, replacementText), Level.INFO);
             TextReplaceRule replaceRule = new TextReplaceRule(key, replacementText);
             textReplaceRules.add(replaceRule);
         }
@@ -131,6 +135,7 @@ public class ConfigHandler {
                 Logging.log(logger, "Permission type: " + permissionString + " is invalid. Check https://twitch4j.github.io/javadoc/com/github/twitch4j/common/enums/CommandPermission.html for valid permissions", Level.WARN);
                 continue;
             }
+            Logging.log(logger, String.format("Chat Format: %s, Weight: %s, Permission: %s", formatString, weight, permissionString), Level.INFO);
             ChatFormat format = new ChatFormat(formatString, weight, permission);
             chatFormats.add(format);
         }
@@ -142,6 +147,8 @@ public class ConfigHandler {
         if (!useTwitch) return;
         twitchChannel = config.getOption("twitch-api.channel", String.class);
         twitchUsername = config.getOption("twitch-api.username", String.class, "");
+        sendMessages = config.getOption("twitch-api.messages.send", Boolean.class, Boolean.FALSE);
+        cleanMessages = config.getOption("twitch-api.messages.clean-markdown", Boolean.class, Boolean.TRUE);
         authPort = config.getOption("internal-settings.twitch-auth-port", Integer.class, 8080);
 
     }
@@ -232,5 +239,13 @@ public class ConfigHandler {
 
     public Boolean getUseVirtualMic() {
         return useVirtualMic;
+    }
+
+    public Boolean shouldSendMessages() {
+        return sendMessages;
+    }
+
+    public Boolean shouldCleanMessages() {
+        return cleanMessages;
     }
 }

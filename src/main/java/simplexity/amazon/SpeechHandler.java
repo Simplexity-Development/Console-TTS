@@ -74,12 +74,13 @@ public class SpeechHandler {
             break;
         }
         for (SpeechEffectRule effectRule : ConfigHandler.getInstance().getEffectRules()) {
-            text = effectRule.applyRule(text);
+            if (!effectRule.matches(text)) continue;
+            text = effectRule.applySSMLRule(text);
         }
         for (TextReplaceRule replaceRule : ConfigHandler.getInstance().getTextReplaceRules()) {
+            if (!replaceRule.matches(text)) continue;
             text = replaceRule.applyRule(text);
         }
-        text = Logging.stripAnsiCodes(text);
         return text;
     }
 

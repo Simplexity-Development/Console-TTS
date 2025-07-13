@@ -12,6 +12,7 @@ public class Logging {
 
     public static void logAndPrint(Logger logger, String message, Level level) {
         String logMessage = stripAnsiCodes(message);
+        logMessage = stripColorTags(logMessage);
         logger.atLevel(level).log(logMessage);
         System.out.println(ColorTags.parse(message));
     }
@@ -22,6 +23,10 @@ public class Logging {
 
     public static String stripAnsiCodes(String text) {
         text = ANSI_PATTERN.matcher(text).replaceAll("");
+        return text;
+    }
+
+    public static String stripColorTags(String text) {
         text = COLOR_TAGS.matcher(text).replaceAll("");
         return text;
     }
