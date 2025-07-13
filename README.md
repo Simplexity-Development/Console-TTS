@@ -83,6 +83,78 @@ internal-settings:
 
 ```
 
+# Formats
+Use these to style your messages. Most formatting tags should be closed with the appropriate </tag> or </color> tag. You can also use <reset> to clear all formatting.
+
+### Styles
+| Style         | Tag       | Close With     |
+| ------------- | --------- | -------------- |
+| Bold          | `<bold>`  | `</bold>`      |
+| Italic        | `<i>`     | `</i>`         |
+| Underline     | `<u>`     | `</u>`         |
+| Strikethrough | `<s>`     | `</s>`         |
+| Reset All     | `<reset>` | *(no closing)* |
+
+### Regular Text Colors
+| Color  | Tag        | Close With |
+| ------ | ---------- | ---------- |
+| Black  | `<black>`  | `</color>` |
+| Red    | `<red>`    | `</color>` |
+| Green  | `<green>`  | `</color>` |
+| Yellow | `<yellow>` | `</color>` |
+| Blue   | `<blue>`   | `</color>` |
+| Purple | `<purple>` | `</color>` |
+| Cyan   | `<cyan>`   | `</color>` |
+| White  | `<white>`  | `</color>` |
+
+### Bright Text Colors
+
+| Bright Color | Tag           | Close With |
+| ------------ | ------------- | ---------- |
+| Black        | `<br-black>`  | `</color>` |
+| Red          | `<br-red>`    | `</color>` |
+| Green        | `<br-green>`  | `</color>` |
+| Yellow       | `<br-yellow>` | `</color>` |
+| Blue         | `<br-blue>`   | `</color>` |
+| Purple       | `<br-purple>` | `</color>` |
+| Cyan         | `<br-cyan>`   | `</color>` |
+| White        | `<br-white>`  | `</color>` |
+
+
+### Background Colors / Highlight Colors
+| Color  | Tag           | Close With    |
+| ------ | ------------- | ------------- |
+| Black  | `<black-bg>`  | `</color-bg>` |
+| Red    | `<red-bg>`    | `</color-bg>` |
+| Green  | `<green-bg>`  | `</color-bg>` |
+| Yellow | `<yellow-bg>` | `</color-bg>` |
+| Blue   | `<blue-bg>`   | `</color-bg>` |
+| Purple | `<purple-bg>` | `</color-bg>` |
+| Cyan   | `<cyan-bg>`   | `</color-bg>` |
+| White  | `<white-bg>`  | `</color-bg>` |
+
+### Bright Background Colors / Highlight Colors
+
+| Bright BG Color | Tag              | Close With    |
+| --------------- | ---------------- | ------------- |
+| Black           | `<br-black-bg>`  | `</color-bg>` |
+| Red             | `<br-red-bg>`    | `</color-bg>` |
+| Green           | `<br-green-bg>`  | `</color-bg>` |
+| Yellow          | `<br-yellow-bg>` | `</color-bg>` |
+| Blue            | `<br-blue-bg>`   | `</color-bg>` |
+| Purple          | `<br-purple-bg>` | `</color-bg>` |
+| Cyan            | `<br-cyan-bg>`   | `</color-bg>` |
+| White           | `<br-white-bg>`  | `</color-bg>` |
+
+### Resets
+
+| Reset Type       | Tag           |
+| ---------------- | ------------- |
+| Reset All Styles | `<reset>`     |
+| Reset Text Color | `</color>`    |
+| Reset Background | `</color-bg>` |
+
+
 Todo:
 
 - [x] Make closing tags less annoying

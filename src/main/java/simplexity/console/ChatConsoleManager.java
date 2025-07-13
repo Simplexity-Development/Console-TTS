@@ -1,7 +1,8 @@
-package simplexity.twitch;
+package simplexity.console;
 
 import com.github.twitch4j.TwitchClient;
 import com.github.twitch4j.chat.events.channel.ChannelMessageEvent;
+import com.github.twitch4j.chat.events.channel.SubscriptionEvent;
 import com.github.twitch4j.common.enums.CommandPermission;
 import org.jline.reader.EndOfFileException;
 import org.jline.reader.LineReader;
@@ -16,10 +17,10 @@ import simplexity.config.ChatFormat;
 import simplexity.config.ConfigHandler;
 import simplexity.config.rules.SpeechEffectRule;
 import simplexity.config.rules.VoicePrefixRule;
-import simplexity.console.ColorTags;
 
 import java.io.IOException;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 public class ChatConsoleManager {
@@ -88,6 +89,16 @@ public class ChatConsoleManager {
             reader.printAbove(colorParsed);
             //todo have options for tts when things happen
         });
+        twitchClient.getEventManager().onEvent(SubscriptionEvent.class, event -> {
+            String user = event.getUser().getName();
+            Optional<String> messageOptional = event.getMessage();
+            if (messageOptional.isEmpty()) return;
+            String message = messageOptional.get();
+            Set<CommandPermission> permissions = event.getMessageEvent().getClientPermissions();
+            String formattedMessage = getFormat(user, message, permissions);
+            String colorParsed = ColorTags.parse(formattedMessage);
+            reader.printAbove(colorParsed);
+        });
     }
 
     private String getFormat(String user, String message, Set<CommandPermission> permissions) {
@@ -106,7 +117,7 @@ public class ChatConsoleManager {
         return formatToUse.applyFormat(user, message);
     }
 
-    private String cleanMessage(String input){
+    private String cleanMessage(String input) {
         for (VoicePrefixRule prefixRule : ConfigHandler.getInstance().getVoicePrefixRules()) {
             if (!prefixRule.matches(input)) continue;
             input = prefixRule.applyRule(input);

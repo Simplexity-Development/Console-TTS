@@ -11,11 +11,15 @@ error:
   unable-to-check-auth: "<br-red>ERROR: Failed to connect to Twitch to check authorization</color>"
   unable-to-open-auth-page: "<br-red>ERROR: Unable to open auth page</color>"
   no-refresh-token-provided: "<br-red>ERROR: No refresh token was found - please clear the twitch tokens and go through initialization again</color>"
+  unable-to-set-config-value: "<br-red>ERROR: Unable to set config value at %s to %s"
 help:
   header: "<br-cyan>Console Text To Speech</color>"
   commands: "<blue>%command_name%</color> <white>-</color> <br-blue>%command_description%</color>"
+  config-usage: "<blue>Usage: list | set <path> <value> | exit</color>"
 feedback:
   refreshing-token: "<br-yellow>Twitch Auth token has expired - Attempting to refresh token..."
   token-refreshed: "<br-green>Successfully Refreshed Twitch Auth Token</color>"
   reload: "<green>Config reloaded</color>"
   shutting-down: "<br-yellow>Console Text To Speech is closing...</color>"
+  enter-config-value: "<blue>Enter config command (i.e., 'list', 'set path.to.key <value>', or 'exit'):</color>"
+  updated-config: "<br-green>Updated config value: %s to %s</color>"

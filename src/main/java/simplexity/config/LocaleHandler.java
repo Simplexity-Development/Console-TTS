@@ -14,7 +14,8 @@ public class LocaleHandler {
 
     private String errorGeneral, messageNotParsable, unknownCommand, authServerFailed, authorizationFailed, authRefreshFailed,
             feedbackRefreshingToken, feedbackTokenRefreshed, initializationFailed, unableToCheckAuth, noRefreshToken,
-            unableToOpenAuthPage, nullAwsCreds, saveAwsInfo, helpHeader, helpCommands, feedbackReload, feedbackShuttingDown;
+            unableToOpenAuthPage, nullAwsCreds, saveAwsInfo, helpHeader, helpCommands, feedbackReload, feedbackShuttingDown,
+            feedbackEnterConfigValue, feedbackUpdatedConfig, unableToSetConfigValue, configCommandUsage;
 
     public void reloadMessages() {
         YmlConfig config = Main.getLocaleConfig();
@@ -32,10 +33,15 @@ public class LocaleHandler {
         unableToOpenAuthPage = config.getOption("error.unable-to-open-auth-page", String.class, "<br-red>ERROR: Unable to open auth page</color>");
         helpHeader = config.getOption("help.header", String.class, "<br-cyan>Console Text To Speech</color>");
         helpCommands = config.getOption("help.commands", String.class, "<blue>%command_name%</color> <white>-</color> <br-blue>%command_description%</color>");
+        configCommandUsage = config.getOption("help.config-usage", String.class, "<blue>Usage: list | set <path> <value> | exit</color>");
         feedbackRefreshingToken = config.getOption("feedback.refreshing-token", String.class, "<br-yellow>Twitch Auth token has expired - Attempting to refresh token...");
         feedbackTokenRefreshed = config.getOption("feedback.token-refreshed", String.class, "<br-green>Successfully Refreshed Twitch Auth Token</color>");
         feedbackReload = config.getOption("feedback.reload", String.class, "<green>Config reloaded</color>");
         feedbackShuttingDown = config.getOption("feedback.shutting-down", String.class, "<br-yellow>CLI Text To Speech is closing...</color>");
+        feedbackEnterConfigValue = config.getOption("feedback.enter-config-value", String.class, "<blue>Enter config command (i.e., 'list', 'set path.to.key <value>', or 'exit'):</color>");
+        feedbackUpdatedConfig = config.getOption("feedback.updated-config", String.class, "<br-green>Updated config value: %s to %s</color>");
+        unableToSetConfigValue = config.getOption("error.unable-to-set-config-value", String.class, "<br-red>ERROR: Unable to set config value at %s to %s");
+
     }
 
 
@@ -109,5 +115,21 @@ public class LocaleHandler {
 
     public String getUnableToOpenAuthPage() {
         return unableToOpenAuthPage;
+    }
+
+    public String getFeedbackEnterConfigValue() {
+        return feedbackEnterConfigValue;
+    }
+
+    public String getFeedbackUpdatedConfig() {
+        return feedbackUpdatedConfig;
+    }
+
+    public String getUnableToSetConfigValue() {
+        return unableToSetConfigValue;
+    }
+
+    public String getConfigCommandUsage() {
+        return configCommandUsage;
     }
 }

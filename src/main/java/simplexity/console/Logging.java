@@ -21,6 +21,10 @@ public class Logging {
         logger.atLevel(level).log(message);
     }
 
+    public static void onlyPrint(String message){
+        System.out.println(ColorTags.parse(message));
+    }
+
     public static String stripAnsiCodes(String text) {
         text = ANSI_PATTERN.matcher(text).replaceAll("");
         return text;

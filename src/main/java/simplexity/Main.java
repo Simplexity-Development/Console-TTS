@@ -17,7 +17,7 @@ import simplexity.config.YmlConfig;
 import simplexity.console.Logging;
 import simplexity.httpserver.AuthServer;
 import simplexity.httpserver.LocalServer;
-import simplexity.twitch.ChatConsoleManager;
+import simplexity.console.ChatConsoleManager;
 import simplexity.twitch.TwitchInitializer;
 
 import java.awt.Desktop;
