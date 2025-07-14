@@ -9,17 +9,31 @@ import org.slf4j.event.Level;
 import simplexity.config.ConfigHandler;
 import simplexity.config.LocaleHandler;
 import simplexity.console.Logging;
+import simplexity.httpserver.AuthServer;
 import simplexity.httpserver.TokenValidator;
 
+import java.awt.Desktop;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Arrays;
 
-public class TwitchInitializer {
+public class TwitchInit {
 
     private static TwitchClient twitchClient;
-    private static final Logger logger = LoggerFactory.getLogger(TwitchInitializer.class);
+    private static final Logger logger = LoggerFactory.getLogger(TwitchInit.class);
 
-    public static void initTwitchClient() {
+    public static void initializeTwitch() {
+        if (!ConfigHandler.getInstance().shouldUseTwitch()) return;
+        if (ConfigHandler.getInstance().getTwitchAccessToken() == null || ConfigHandler.getInstance().getTwitchAccessToken().isEmpty()) {
+            AuthServer.run();
+            openBrowser();
+        }
+        twitchClient = getTwitchClient();
+        twitchClient.getChat().joinChannel(ConfigHandler.getInstance().getTwitchChannel());
+        TwitchListeners.chatListener();
+    }
+
+    private static void initTwitchClient() {
         String clientId = ConfigHandler.getInstance().getTwitchClientId();
         String clientSecret = ConfigHandler.getInstance().getTwitchClientSecret();
         String accessToken = ConfigHandler.getInstance().getTwitchAccessToken();
@@ -54,5 +68,21 @@ public class TwitchInitializer {
     public static TwitchClient getTwitchClient() {
         if (twitchClient == null) initTwitchClient();
         return twitchClient;
+    }
+
+    private static void openBrowser() {
+        String clientId = ConfigHandler.getInstance().getTwitchClientId();
+        int port = ConfigHandler.getInstance().getAuthPort();
+        String redirectUri = "http://localhost:" + port;
+        String authUrl = String.format(
+                "https://id.twitch.tv/oauth2/authorize?response_type=code&client_id=%s&redirect_uri=%s&scope=chat%%3Aread+chat%%3Aedit&force_verify=true",
+                clientId, redirectUri
+        );
+
+        try {
+            Desktop.getDesktop().browse(new URI(authUrl));
+        } catch (Exception e) {
+            Logging.logAndPrint(logger, LocaleHandler.getInstance().getUnableToOpenAuthPage(), Level.ERROR);
+        }
     }
 }

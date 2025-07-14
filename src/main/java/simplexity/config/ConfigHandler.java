@@ -7,7 +7,7 @@ import com.github.twitch4j.common.enums.CommandPermission;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-import simplexity.Main;
+import simplexity.amazon.SpeechHandler;
 import simplexity.config.rules.SpeechEffectRule;
 import simplexity.config.rules.TextReplaceRule;
 import simplexity.config.rules.VoicePrefixRule;
@@ -24,6 +24,7 @@ public class ConfigHandler {
     private final HashSet<SpeechEffectRule> effectRules = new HashSet<>();
     private final HashSet<TextReplaceRule> textReplaceRules = new HashSet<>();
     private final HashSet<ChatFormat> chatFormats = new HashSet<>();
+    private SpeechHandler speechHandler;
 
     private Region awsRegion;
     private VoiceId defaultVoice;
@@ -41,8 +42,8 @@ public class ConfigHandler {
     }
 
     public void reloadValues() {
-        YmlConfig config = Main.getConfig();
-        YmlConfig keyConfig = Main.getTokenConfig();
+        YmlConfig config = ConfigInit.getConfig();
+        YmlConfig keyConfig = ConfigInit.getTokenConfig();
         reloadSpeechEffects(config);
         reloadAwsValues(config);
         reloadVoicePrefixes(config);
@@ -51,6 +52,7 @@ public class ConfigHandler {
         reloadChatFormats(config);
         reloadKeys(keyConfig);
         reloadTtsOptions(config);
+        speechHandler = new SpeechHandler();
     }
 
     private void reloadAwsValues(YmlConfig config) {
@@ -119,7 +121,7 @@ public class ConfigHandler {
         }
     }
 
-    private void reloadChatFormats(YmlConfig config){
+    private void reloadChatFormats(YmlConfig config) {
         Logging.log(logger, "Reloading chat formats", Level.INFO);
         chatFormats.clear();
         Set<String> keySet = config.getKeys("twitch-api.chat");
@@ -163,7 +165,7 @@ public class ConfigHandler {
         twitchRefreshToken = config.getOption("tokens.twitch.refresh-token", String.class, "");
     }
 
-    private void reloadTtsOptions(YmlConfig config){
+    private void reloadTtsOptions(YmlConfig config) {
         Logging.log(logger, "Loading tts options", Level.INFO);
         useVirtualMic = config.getOption("tts.use-virtual-mic", Boolean.class, Boolean.FALSE);
     }
@@ -247,5 +249,9 @@ public class ConfigHandler {
 
     public Boolean shouldCleanMessages() {
         return cleanMessages;
+    }
+
+    public SpeechHandler getSpeechHandler() {
+        return speechHandler;
     }
 }

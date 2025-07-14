@@ -1,7 +1,5 @@
 package simplexity.config;
 
-import simplexity.Main;
-
 public class LocaleHandler {
 
 
@@ -18,7 +16,7 @@ public class LocaleHandler {
             feedbackEnterConfigValue, feedbackUpdatedConfig, unableToSetConfigValue, configCommandUsage;
 
     public void reloadMessages() {
-        YmlConfig config = Main.getLocaleConfig();
+        YmlConfig config = ConfigInit.getLocaleConfig();
         errorGeneral = config.getOption("error.general", String.class, "<br-red>ERROR: %error%</color>");
         messageNotParsable = config.getOption("error.message-not-parsable", String.class, "<br-red>ERROR: Message was not parsable, attempted to send: %message%</color>");
         unknownCommand = config.getOption("error.unknown-command", String.class, "<br-red>ERROR: '%command%' is not a recognized command</color>");

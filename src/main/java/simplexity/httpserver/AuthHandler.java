@@ -7,8 +7,8 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-import simplexity.Main;
 import simplexity.config.ConfigHandler;
+import simplexity.config.ConfigInit;
 import simplexity.config.LocaleHandler;
 import simplexity.console.Logging;
 
@@ -61,9 +61,9 @@ public class AuthHandler implements HttpHandler {
             if (tokenResponse.has("access_token")) {
                 String accessToken = tokenResponse.getString("access_token");
                 String refreshToken = tokenResponse.optString("refresh_token", "");
-                Main.getTokenConfig().setValue("tokens.twitch.access-token", accessToken);
-                Main.getTokenConfig().setValue("tokens.twitch.refresh-token", refreshToken);
-                Main.getTokenConfig().saveConfig();
+                ConfigInit.getTokenConfig().setValue("tokens.twitch.access-token", accessToken);
+                ConfigInit.getTokenConfig().setValue("tokens.twitch.refresh-token", refreshToken);
+                ConfigInit.getTokenConfig().saveConfig();
                 ConfigHandler.getInstance().reloadValues();
                 respondWith(exchange, 200, "<h1>Authorization successful! You can now close this window!</h1>");
             } else {

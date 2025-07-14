@@ -10,7 +10,6 @@ import javazoom.jl.player.advanced.AdvancedPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-import simplexity.Main;
 import simplexity.audio.virtualmic.PlatformAudioRouter;
 import simplexity.config.ConfigHandler;
 import simplexity.config.LocaleHandler;
@@ -98,7 +97,7 @@ public class SpeechHandler {
                     .withTextType(TextType.Ssml)
                     .withVoiceId(voice)
                     .withOutputFormat(format);
-            SynthesizeSpeechResult result = Main.getPollyHandler().getPolly().synthesizeSpeech(request);
+            SynthesizeSpeechResult result = PollyInit.getPollyHandler().getPolly().synthesizeSpeech(request);
             return result.getAudioStream();
         } catch (RuntimeException exception) {
             logSynthesisError(exception, ssmlText);
@@ -118,7 +117,7 @@ public class SpeechHandler {
                     .withText(text)
                     .withVoiceId(voice)
                     .withOutputFormat(format);
-            SynthesizeSpeechResult result = Main.getPollyHandler().getPolly().synthesizeSpeech(request);
+            SynthesizeSpeechResult result = PollyInit.getPollyHandler().getPolly().synthesizeSpeech(request);
             return result.getAudioStream();
         } catch (RuntimeException exception) {
             logSynthesisError(exception, text);

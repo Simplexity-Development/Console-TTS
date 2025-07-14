@@ -4,8 +4,8 @@ import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-import simplexity.Main;
 import simplexity.config.ConfigHandler;
+import simplexity.config.ConfigInit;
 import simplexity.config.LocaleHandler;
 import simplexity.console.Logging;
 
@@ -56,9 +56,9 @@ public class TokenValidator {
         String newAccessToken = refreshed.getString("access_token");
         String newRefreshToken = refreshed.optString("refresh_token", refreshToken);
 
-        Main.getTokenConfig().setValue("tokens.twitch.access-token", newAccessToken);
-        Main.getTokenConfig().setValue("tokens.twitch.refresh-token", newRefreshToken);
-        Main.getTokenConfig().saveConfig();
+        ConfigInit.getTokenConfig().setValue("tokens.twitch.access-token", newAccessToken);
+        ConfigInit.getTokenConfig().setValue("tokens.twitch.refresh-token", newRefreshToken);
+        ConfigInit.getTokenConfig().saveConfig();
         ConfigHandler.getInstance().reloadValues();
 
         Logging.logAndPrint(logger, LocaleHandler.getInstance().getFeedbackTokenRefreshed(), Level.INFO);
