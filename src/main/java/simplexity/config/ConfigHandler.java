@@ -29,7 +29,7 @@ public class ConfigHandler {
     private Region awsRegion;
     private VoiceId defaultVoice;
     private String awsAccessID, awsSecretKey, twitchChannel, twitchClientId, twitchClientSecret, twitchAccessToken,
-            twitchRefreshToken, twitchUsername;
+            twitchRefreshToken, twitchUsername, defaultOpeningTag, defaultClosingTag;
     private Integer serverPort, authPort;
     private Boolean useTwitch, useVirtualMic, sendMessages, cleanMessages;
     private static ConfigHandler instance;
@@ -52,6 +52,7 @@ public class ConfigHandler {
         reloadChatFormats(config);
         reloadKeys(keyConfig);
         reloadTtsOptions(config);
+        loadDefaultVoice(config);
         speechHandler = new SpeechHandler();
     }
 
@@ -60,10 +61,45 @@ public class ConfigHandler {
 
         Regions region = config.getOption("aws-api.region", Regions.class, Regions.US_EAST_1);
         if (region != null) awsRegion = Region.getRegion(region);
-        defaultVoice = config.getOption("aws-api.default-voice", VoiceId.class, VoiceId.Brian);
-        Logging.log(logger, String.format("Default voice: %s", defaultVoice.toString()), Level.INFO);
+
+        Logging.log(logger, String.format("Default voice: %s", defaultVoice), Level.INFO);
         serverPort = config.getOption("internal-settings.server-port", Integer.class, 3000);
 
+    }
+
+    private void loadDefaultVoice(YmlConfig config) {
+        Logging.log(logger, "Loading default voice settings", Level.INFO);
+        String voiceString = config.getOption("aws-api.default-voice", String.class, "BRIAN");
+        try {
+            defaultVoice = VoiceId.valueOf(voiceString);
+        } catch (IllegalArgumentException e) {
+            Logging.logAndPrint(logger, String.format("Voice ID at 'aws-api.default-voice' is invalid. Provided voice: %s", voiceString), Level.WARN);
+            defaultVoice = VoiceId.Brian;
+        }
+        String configPath = "aws-api.default-effects";
+        StringBuilder openingBuilder = new StringBuilder();
+        StringBuilder closingBuilder = new StringBuilder();
+        openingBuilder.append("<");
+        closingBuilder.append("</");
+        for (String key : config.getKeys("aws-api.default-effects")) {
+            String value = config.getOption(configPath + "." + key, String.class);
+            if (value == null || value.isEmpty()) {
+                Logging.log(logger, String.format("ERROR: value for path %s is null or empty. Skipping...", configPath + "." + key), Level.WARN);
+                continue;
+            }
+            if (key.equals("type")) {
+                openingBuilder.insert(1, value);
+                closingBuilder.append(value);
+                continue;
+            }
+            openingBuilder.append(" ").append(key).append("=\"").append(value).append("\"");
+        }
+        openingBuilder.append(">");
+        closingBuilder.append(">");
+        Logging.log(logger, String.format("Default opening tag: %s", openingBuilder), Level.INFO);
+        Logging.log(logger, String.format("Default closing tag: %s", closingBuilder), Level.INFO);
+        defaultOpeningTag = openingBuilder.toString();
+        defaultClosingTag = closingBuilder.toString();
     }
 
     private void reloadVoicePrefixes(YmlConfig config) {
@@ -253,5 +289,13 @@ public class ConfigHandler {
 
     public SpeechHandler getSpeechHandler() {
         return speechHandler;
+    }
+
+    public String getDefaultOpeningTag() {
+        return defaultOpeningTag;
+    }
+
+    public String getDefaultClosingTag() {
+        return defaultClosingTag;
     }
 }

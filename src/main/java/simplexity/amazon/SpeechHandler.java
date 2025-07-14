@@ -37,17 +37,8 @@ public class SpeechHandler {
      * and synthesizes and plays the speech.
      */
     public void processSpeech(String text) {
-        // Replace text and determine if SSML is needed
         String processedText = replaceText(text);
-        boolean useSSML = !text.equals(processedText);
-
-        //Synthesize speech
-        InputStream speechStream;
-        if (useSSML) {
-            speechStream = synthesizeSSMLSpeech(processedText, voiceId);
-        } else {
-            speechStream = synthesizeSpeech(processedText, voiceId);
-        }
+        InputStream speechStream = synthesizeSSMLSpeech(processedText, voiceId);
         if (speechStream == null) {
             Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", "Speech stream is null"), Level.ERROR);
             return;
@@ -84,7 +75,11 @@ public class SpeechHandler {
     }
 
     public InputStream synthesizeSSMLSpeech(String text, VoiceId voice) {
-        String ssmlText = "<speak>" + text + "</speak>";
+        String ssmlText = "<speak>"
+                          + ConfigHandler.getInstance().getDefaultOpeningTag()
+                          + text
+                          + ConfigHandler.getInstance().getDefaultClosingTag()
+                          + "</speak>";
         OutputFormat format;
         if (ConfigHandler.getInstance().getUseVirtualMic()) {
             format = OutputFormat.Pcm;
@@ -101,26 +96,6 @@ public class SpeechHandler {
             return result.getAudioStream();
         } catch (RuntimeException exception) {
             logSynthesisError(exception, ssmlText);
-            return null;
-        }
-    }
-
-    public InputStream synthesizeSpeech(String text, VoiceId voice) {
-        OutputFormat format;
-        if (ConfigHandler.getInstance().getUseVirtualMic()) {
-            format = OutputFormat.Pcm;
-        } else {
-            format = OutputFormat.Mp3;
-        }
-        try {
-            SynthesizeSpeechRequest request = new SynthesizeSpeechRequest()
-                    .withText(text)
-                    .withVoiceId(voice)
-                    .withOutputFormat(format);
-            SynthesizeSpeechResult result = PollyInit.getPollyHandler().getPolly().synthesizeSpeech(request);
-            return result.getAudioStream();
-        } catch (RuntimeException exception) {
-            logSynthesisError(exception, text);
             return null;
         }
     }

@@ -1,6 +1,11 @@
 aws-api:
   region: "US_EAST_1"
   default-voice: "Brian"
+  default-effects:
+    type: prosody
+    volume: medium
+    pitch: default
+    rate: medium
   voice-prefixes:
     Sal: Salli
     Kim: Kimberly

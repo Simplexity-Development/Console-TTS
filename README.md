@@ -88,7 +88,7 @@ Use these to style your messages. Most formatting tags should be closed with the
 
 ### Styles
 | Style         | Tag       | Close With     |
-| ------------- | --------- | -------------- |
+|---------------|-----------|----------------|
 | Bold          | `<bold>`  | `</bold>`      |
 | Italic        | `<i>`     | `</i>`         |
 | Underline     | `<u>`     | `</u>`         |
@@ -97,7 +97,7 @@ Use these to style your messages. Most formatting tags should be closed with the
 
 ### Regular Text Colors
 | Color  | Tag        | Close With |
-| ------ | ---------- | ---------- |
+|--------|------------|------------|
 | Black  | `<black>`  | `</color>` |
 | Red    | `<red>`    | `</color>` |
 | Green  | `<green>`  | `</color>` |
@@ -110,7 +110,7 @@ Use these to style your messages. Most formatting tags should be closed with the
 ### Bright Text Colors
 
 | Bright Color | Tag           | Close With |
-| ------------ | ------------- | ---------- |
+|--------------|---------------|------------|
 | Black        | `<br-black>`  | `</color>` |
 | Red          | `<br-red>`    | `</color>` |
 | Green        | `<br-green>`  | `</color>` |
@@ -123,7 +123,7 @@ Use these to style your messages. Most formatting tags should be closed with the
 
 ### Background Colors / Highlight Colors
 | Color  | Tag           | Close With    |
-| ------ | ------------- | ------------- |
+|--------|---------------|---------------|
 | Black  | `<black-bg>`  | `</color-bg>` |
 | Red    | `<red-bg>`    | `</color-bg>` |
 | Green  | `<green-bg>`  | `</color-bg>` |
@@ -136,7 +136,7 @@ Use these to style your messages. Most formatting tags should be closed with the
 ### Bright Background Colors / Highlight Colors
 
 | Bright BG Color | Tag              | Close With    |
-| --------------- | ---------------- | ------------- |
+|-----------------|------------------|---------------|
 | Black           | `<br-black-bg>`  | `</color-bg>` |
 | Red             | `<br-red-bg>`    | `</color-bg>` |
 | Green           | `<br-green-bg>`  | `</color-bg>` |
@@ -149,7 +149,7 @@ Use these to style your messages. Most formatting tags should be closed with the
 ### Resets
 
 | Reset Type       | Tag           |
-| ---------------- | ------------- |
+|------------------|---------------|
 | Reset All Styles | `<reset>`     |
 | Reset Text Color | `</color>`    |
 | Reset Background | `</color-bg>` |
