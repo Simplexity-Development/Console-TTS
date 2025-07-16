@@ -1,0 +1,11 @@
+keys:
+  aws:
+    access-key: ""
+    secret-key: ""
+  twitch:
+    client-id: ""
+    client-secret: ""
+tokens:
+  twitch:
+    access-token: ""
+    refresh-token: ""

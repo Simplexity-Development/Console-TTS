@@ -9,7 +9,7 @@ import java.io.OutputStream;
 public class ChatHandler implements HttpHandler {
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        String response = "<html><body><h1>Hello World!</h1></body></html>";
+        String response = "<html><body><h1>You're really not supposed to be seeing this. Help</h1></body></html>";
         sendResponse(exchange, response, 200);
     }
 

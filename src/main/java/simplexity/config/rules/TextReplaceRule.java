@@ -12,6 +12,10 @@ public class TextReplaceRule {
         textPattern = Pattern.compile("(?<=^|\\s)" + Pattern.quote(textToFind) + "(?=\\s|$)");
     }
 
+    public boolean matches(String input) {
+        return textPattern.matcher(input).find();
+    }
+
     public String applyRule(String input){
         return textPattern.matcher(input).replaceAll(replacementText);
     }

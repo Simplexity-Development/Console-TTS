@@ -4,21 +4,20 @@ import com.amazonaws.regions.Region;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-import simplexity.Main;
 import simplexity.config.ConfigHandler;
 import simplexity.config.LocaleHandler;
 import simplexity.console.Logging;
 
-public class PollySetup {
-    private static final Logger logger = LoggerFactory.getLogger(PollySetup.class);
+public class PollyInit {
+    private static final Logger logger = LoggerFactory.getLogger(PollyInit.class);
+    private static PollyHandler pollyHandler;
 
     public static void setupPollyAndSpeech() {
-        connectToPolly();
-        Main.setSpeechHandler(new SpeechHandler());
+        createPollyHandler();
     }
 
     public static PollyHandler createPollyHandler() {
-        PollyHandler pollyHandler = null;
+        PollyHandler handler = null;
         String awsAccessID = ConfigHandler.getInstance().getAwsAccessID();
         String awsSecretKey = ConfigHandler.getInstance().getAwsSecretKey();
         Region awsRegion = ConfigHandler.getInstance().getAwsRegion();
@@ -27,19 +26,16 @@ public class PollySetup {
             return null;
         }
         try {
-            pollyHandler = new PollyHandler(awsAccessID, awsSecretKey, awsRegion);
+            handler = new PollyHandler(awsAccessID, awsSecretKey, awsRegion);
         } catch (IllegalArgumentException e) {
             Logging.logAndPrint(logger, LocaleHandler.getInstance().getNullAwsCreds(), Level.ERROR);
         }
-        return pollyHandler;
+        pollyHandler = handler;
+        return handler;
     }
 
-    public static void connectToPolly() {
-        Main.setPollyHandler(createPollyHandler());
-        if (Main.getPollyHandler() != null) {
-            return;
-        }
-        Logging.logAndPrint(logger, LocaleHandler.getInstance().getSaveAwsInfo(), Level.INFO);
-        System.exit(-1);
+    public static PollyHandler getPollyHandler() {
+        if (pollyHandler == null) return createPollyHandler();
+        return pollyHandler;
     }
 }

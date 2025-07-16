@@ -10,7 +10,6 @@ import javazoom.jl.player.advanced.AdvancedPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-import simplexity.Main;
 import simplexity.config.ConfigHandler;
 import simplexity.config.LocaleHandler;
 import simplexity.config.rules.SpeechEffectRule;
@@ -34,24 +33,14 @@ public class SpeechHandler {
      * and synthesizes and plays the speech.
      */
     public void processSpeech(String text) {
-        // Replace text and determine if SSML is needed
         String processedText = replaceText(text);
-        boolean useSSML = !text.equals(processedText);
-
-        //Synthesize speech
-        InputStream speechStream;
-        if (useSSML) {
-            speechStream = synthesizeSSMLSpeech(processedText, voiceId);
-        } else {
-            speechStream = synthesizeSpeech(processedText, voiceId);
-        }
+        InputStream speechStream = synthesizeSSMLSpeech(processedText, voiceId);
         if (speechStream == null) {
             Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", "Speech stream is null"), Level.ERROR);
             return;
         }
+        playToDefaultOutput(speechStream);
 
-        //play it
-        playSpeech(speechStream);
     }
 
     /**
@@ -66,24 +55,30 @@ public class SpeechHandler {
             break;
         }
         for (SpeechEffectRule effectRule : ConfigHandler.getInstance().getEffectRules()) {
-            text = effectRule.applyRule(text);
+            if (!effectRule.matches(text)) continue;
+            text = effectRule.applySSMLRule(text);
         }
         for (TextReplaceRule replaceRule : ConfigHandler.getInstance().getTextReplaceRules()) {
+            if (!replaceRule.matches(text)) continue;
             text = replaceRule.applyRule(text);
         }
-        text = Logging.stripAnsiCodes(text);
         return text;
     }
 
     public InputStream synthesizeSSMLSpeech(String text, VoiceId voice) {
-        String ssmlText = "<speak>" + text + "</speak>";
+        String ssmlText = "<speak>"
+                          + ConfigHandler.getInstance().getDefaultOpeningTag()
+                          + text
+                          + ConfigHandler.getInstance().getDefaultClosingTag()
+                          + "</speak>";
+        OutputFormat format = OutputFormat.Mp3;
         try {
             SynthesizeSpeechRequest request = new SynthesizeSpeechRequest()
                     .withText(ssmlText)
                     .withTextType(TextType.Ssml)
                     .withVoiceId(voice)
-                    .withOutputFormat(OutputFormat.Mp3);
-            SynthesizeSpeechResult result = Main.getPollyHandler().getPolly().synthesizeSpeech(request);
+                    .withOutputFormat(format);
+            SynthesizeSpeechResult result = PollyInit.getPollyHandler().getPolly().synthesizeSpeech(request);
             return result.getAudioStream();
         } catch (RuntimeException exception) {
             logSynthesisError(exception, ssmlText);
@@ -91,27 +86,12 @@ public class SpeechHandler {
         }
     }
 
-    public InputStream synthesizeSpeech(String text, VoiceId voice) {
-        try {
-            SynthesizeSpeechRequest request = new SynthesizeSpeechRequest()
-                    .withText(text)
-                    .withVoiceId(voice)
-                    .withOutputFormat(OutputFormat.Mp3);
-            SynthesizeSpeechResult result = Main.getPollyHandler().getPolly().synthesizeSpeech(request);
-            return result.getAudioStream();
-        } catch (RuntimeException exception) {
-            logSynthesisError(exception, text);
-            return null;
-        }
-    }
-
     /**
      * Plays the text as speech
      */
-    public void playSpeech(InputStream speechStream) {
-        AdvancedPlayer player;
+    public void playToDefaultOutput(InputStream speechStream) {
         try {
-            player = new AdvancedPlayer(speechStream, FactoryRegistry.systemRegistry().createAudioDevice());
+            AdvancedPlayer player = new AdvancedPlayer(speechStream, FactoryRegistry.systemRegistry().createAudioDevice());
             player.play();
         } catch (Exception exception) {
             Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", exception.getMessage()), Level.ERROR);

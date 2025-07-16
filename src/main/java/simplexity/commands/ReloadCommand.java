@@ -3,11 +3,11 @@ package simplexity.commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-import simplexity.Main;
 import simplexity.config.ConfigHandler;
+import simplexity.config.ConfigInit;
 import simplexity.config.LocaleHandler;
-import simplexity.httpserver.LocalServer;
 import simplexity.console.Logging;
+import simplexity.httpserver.LocalServer;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -24,8 +24,8 @@ public class ReloadCommand extends Command {
     public void execute() {
         Logging.log(logger, "Reloading configs", Level.INFO);
         try {
-            Main.getConfig().reloadConfig();
-            Main.getLocaleConfig().reloadConfig();
+            ConfigInit.getConfig().reloadConfig();
+            ConfigInit.getLocaleConfig().reloadConfig();
             ConfigHandler.getInstance().reloadValues();
             LocaleHandler.getInstance().reloadMessages();
         } catch (IOException e) {

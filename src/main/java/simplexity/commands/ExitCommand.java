@@ -15,7 +15,6 @@ public class ExitCommand extends Command {
     @Override
     public void execute() {
         Logging.logAndPrint(logger, LocaleHandler.getInstance().getFeedbackShuttingDown(), Level.INFO);
-        Main.runApp = false;
         LocalServer.stop();
         System.exit(0);
     }
