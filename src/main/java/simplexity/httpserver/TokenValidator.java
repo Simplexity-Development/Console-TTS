@@ -24,11 +24,12 @@ public class TokenValidator {
             return false;
         }
         try {
-            HttpURLConnection connection = (HttpURLConnection) new URL(Constants.TOKEN_URL).openConnection();
+            HttpURLConnection connection = (HttpURLConnection) new URL(Constants.TOKEN_VALIDATE_URL).openConnection();
             connection.setRequestMethod("GET");
             connection.setRequestProperty("Authorization", "OAuth " + accessToken);
 
             int responseCode = connection.getResponseCode();
+            Logging.log(logger, "Token validation response: " + connection.getResponseMessage(), Level.INFO);
             if (responseCode == 200) {
                 return true;
             }

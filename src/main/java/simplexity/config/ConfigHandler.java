@@ -31,7 +31,7 @@ public class ConfigHandler {
     private String awsAccessID, awsSecretKey, twitchChannel, twitchClientId, twitchClientSecret, twitchAccessToken,
             twitchRefreshToken, twitchUsername, defaultOpeningTag, defaultClosingTag;
     private Integer serverPort, authPort;
-    private Boolean useTwitch, useVirtualMic, sendMessages, cleanMessages;
+    private Boolean useTwitch, sendMessages, cleanMessages;
     private static ConfigHandler instance;
 
     public static ConfigHandler getInstance() {
@@ -51,7 +51,6 @@ public class ConfigHandler {
         reloadTwitchValues(config);
         reloadChatFormats(config);
         reloadKeys(keyConfig);
-        reloadTtsOptions(config);
         loadDefaultVoice(config);
         speechHandler = new SpeechHandler();
     }
@@ -201,11 +200,6 @@ public class ConfigHandler {
         twitchRefreshToken = config.getOption("tokens.twitch.refresh-token", String.class, "");
     }
 
-    private void reloadTtsOptions(YmlConfig config) {
-        Logging.log(logger, "Loading tts options", Level.INFO);
-        useVirtualMic = config.getOption("tts.use-virtual-mic", Boolean.class, Boolean.FALSE);
-    }
-
 
     public String getAwsAccessID() {
         return awsAccessID;
@@ -273,10 +267,6 @@ public class ConfigHandler {
 
     public String getTwitchUsername() {
         return twitchUsername;
-    }
-
-    public Boolean getUseVirtualMic() {
-        return useVirtualMic;
     }
 
     public Boolean shouldSendMessages() {

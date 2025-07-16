@@ -52,10 +52,31 @@ aws-api:
   secret-key: ""
   region: "US_EAST_1"
   default-voice: "Brian"
+  default-effects:
+    type: prosody
+    volume: medium
+    pitch: default
+    rate: medium
   voice-prefixes:
     Sal: Salli
     Kim: Kimberly
     Bri: Brian
+twitch-api:
+  enable: false
+  messages:
+    send: false
+    clean-markdown: true
+  channel: ""
+  username: ""
+  chat:
+    default:
+      format: "%user% ➜ %message%"
+      weight: 0
+      permission: EVERYONE
+    mod:
+      format: "<br-green>⚔ %user%</color> ➜ %message%"
+      weight: 10
+      permission: MODERATOR
 speech-effect-markdown:
   "**":
     type: prosody
@@ -80,7 +101,7 @@ text-replacements:
     "<3": "heart emoji"
 internal-settings:
   server-port: 3000
-
+  twitch-auth-port: 8080
 ```
 
 # Formats
@@ -161,4 +182,7 @@ Todo:
 - [x] Manage exceptions better
 - [x] Probably unify the config into one file
 - [ ] Add configuration for audio output destination
-- [ ] Add more Polly configuration (how dates are said, numbers, etc)
+- [x] Add more Polly configuration (how dates are said, numbers, etc)
+
+
+https://twitch4j.github.io/javadoc/com/github/twitch4j/common/enums/CommandPermission.html

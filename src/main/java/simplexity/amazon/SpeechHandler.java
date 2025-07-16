@@ -10,7 +10,6 @@ import javazoom.jl.player.advanced.AdvancedPlayer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.event.Level;
-import simplexity.audio.virtualmic.PlatformAudioRouter;
 import simplexity.config.ConfigHandler;
 import simplexity.config.LocaleHandler;
 import simplexity.config.rules.SpeechEffectRule;
@@ -18,10 +17,7 @@ import simplexity.config.rules.TextReplaceRule;
 import simplexity.config.rules.VoicePrefixRule;
 import simplexity.console.Logging;
 
-import javax.sound.sampled.AudioFormat;
-import javax.sound.sampled.SourceDataLine;
 import java.io.InputStream;
-import java.util.Arrays;
 
 public class SpeechHandler {
     private static final Logger logger = LoggerFactory.getLogger(SpeechHandler.class);
@@ -43,13 +39,8 @@ public class SpeechHandler {
             Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", "Speech stream is null"), Level.ERROR);
             return;
         }
+        playToDefaultOutput(speechStream);
 
-        if (ConfigHandler.getInstance().getUseVirtualMic()) {
-            playToVirtualMic(speechStream);
-
-        } else {
-            playToDefaultOutput(speechStream);
-        }
     }
 
     /**
@@ -80,12 +71,7 @@ public class SpeechHandler {
                           + text
                           + ConfigHandler.getInstance().getDefaultClosingTag()
                           + "</speak>";
-        OutputFormat format;
-        if (ConfigHandler.getInstance().getUseVirtualMic()) {
-            format = OutputFormat.Pcm;
-        } else {
-            format = OutputFormat.Mp3;
-        }
+        OutputFormat format = OutputFormat.Mp3;
         try {
             SynthesizeSpeechRequest request = new SynthesizeSpeechRequest()
                     .withText(ssmlText)
@@ -111,30 +97,6 @@ public class SpeechHandler {
             Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", exception.getMessage()), Level.ERROR);
         }
     }
-
-    private void playToVirtualMic(InputStream speechStream) {
-        try {
-            AudioFormat format = new AudioFormat(16000f, 16, 1, true, false);
-            SourceDataLine line = PlatformAudioRouter.getOutputLine(format);
-            line.start();
-
-            byte[] buffer = new byte[4096];
-            int bytesRead;
-            while ((bytesRead = speechStream.read(buffer)) != -1) {
-                line.write(buffer, 0, bytesRead);
-            }
-
-            line.drain();
-            line.stop();
-            line.close();
-
-        } catch (Exception e) {
-            Logging.logAndPrint(logger, LocaleHandler.getInstance().getErrorGeneral().replace("%error%", e.getMessage()), Level.ERROR);
-            Logging.log(logger, Arrays.toString(e.getStackTrace()), Level.ERROR);
-        }
-
-    }
-
 
     /**
      * Logs errors during speech synthesis.
