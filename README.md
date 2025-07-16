@@ -1,74 +1,158 @@
 # Console Text To Speech
-This program is meant to be an intuitive text-to-speech program that runs on command line. 
-  This was made with streamers who struggle speaking in mind - but is open to use for many other things.
-  This uses SSML - and uses markdown-esque formatting for the effects.
+This program is meant to be an intuitive text-to-speech program that runs on the command line.
+This was made with streamers who struggle speaking in mind—but is open to use for many other things.
+This uses SSML and includes markdown-esque formatting for the effects.
+
+## Quickstart
+
+- **Install Java 17+** if you haven’t already.
+  - **Recommended (OpenJDK):** [Adoptium Temurin 17](https://adoptium.net/en-GB/temurin/releases/?version=17)
+  - **Oracle JDK 17 (Login Required):** [Oracle JDK 17 Archive](https://www.oracle.com/java/technologies/javase/jdk17-archive-downloads.html)
+  - **Linux/macOS users:** [Install via SDKMAN](https://sdkman.io)
+  - Confirm installation with `java -version`
+- **Download or compile the program**, then run it.
+- When first launched, it will generate default config files.
+- Open the generated config files and fill in:
+  - Your [AWS IAM](#aws) credentials in `tokens.yml`
+- If you intend to use the Twitch integration:
+  - Twitch Client ID and Secret in `tokens.yml`
+  - Your Twitch username in `twitch-api.username`
+  - Follow the instructions in [The Twitch Integration](#twitch-integration) section to set up a Twitch application
+- Reload or restart the app and start typing — messages will be read aloud!
+
 
 ### AWS
-Using this requires an AWS account - https://aws.amazon.com/
-You can use a free account - Please do read and check the limits and such though.
-You will need to go to Identity and Access Management -> Access Keys
-You will get an Access ID and Access Secret from there.
+Using this requires an AWS account: https://aws.amazon.com/
 
-References:
-- [Amazon Polly Description of Limits/Price](https://aws.amazon.com/polly/pricing/)
-- [Setting up a user and how to use IAM](https://docs.aws.amazon.com/signer/latest/developerguide/iam-setup.html)
+You can use a free account - please check the [limits and pricing](https://aws.amazon.com/polly/pricing/).
 
-## Voice Prefixes
-
-The voice prefixes section allows you to set a prefix that will switch the voice to a specific Polly voice.
-Then, if you use that prefix at the beginning of a message, the application will switch to that voice until another prefix is used. 
-Prefixes will be matched ignoring case and even if there's a `:` or `-` after it.
-
-## Speech Effect Markdown
-
-This is where the marks for the effects are declared. [SSML Tags Can Be Found Here](https://docs.aws.amazon.com/polly/latest/dg/supportedtags.html) - Currently self-closing tags such as 'break' are not supported
-Effect declaration in the config looks like this:
-
+1. Go to **IAM / Users / Security Credentials**
+2. Create or use an existing user
+3. Generate an **Access Key ID** and **Secret Access Key**
+4. Enter them into `tokens.yml`:
 ```yml
-speech-effect-markdown:
-  "!": //The character(s) that will be on either side of the text you want the effect to be used on
-    type: tag-name     //This is the tag name, might have 'amazon:' before it
-    attribute: value   // Any customization settings go after that, like "volume" and "loud"
+aws:
+access-key: YOUR_ACCESS_KEY
+secret-key: YOUR_SECRET_KEY
 ```
 
-By default, the markdown will be matched if surrounded by spaces or newlines/end of lines, but not if surrounded by other characters. 
-So you can have '.' and '..' as effect markdowns if you want
+More info: [Setting up IAM](https://docs.aws.amazon.com/signer/latest/developerguide/iam-setup.html)
 
+---
 
-## Text Replacements
+## Voice Prefixes
+The `voice-prefixes` section allows you to define short keywords that change the voice for any message that begins with them.
+They are matched case-insensitively and tolerate `:` or `-` afterward.
 
-This is generic text replacement - it is run through a regex so that things aren't caught in the middle of a sentence. 
+Example:
+```yml
+voice-prefixes:
+Sal: Salli
+Kim: Kimberly
+Bri: Brian
+```
 
-## Other Settings
+---
 
-**Server Port:**
-Used for the HTTP server the amazon requests are being made from. You shouldn't need to change this unless you already know what you're doing
-
-### Default configuration
+## Default Effects
+You can set default prosody effects to apply to speech that doesn't have other effects. 
 
 ```yml
-aws-api:
-  access-key: ""
-  secret-key: ""
-  region: "US_EAST_1"
-  default-voice: "Brian"
-  default-effects:
+default-effects:
+type: prosody
+volume: medium
+pitch: default
+rate: medium
+```
+
+---
+
+## Speech Effect Markdown
+This is where the effects are declared. [SSML Tags Reference](https://docs.aws.amazon.com/polly/latest/dg/supportedtags.html)
+
+These must wrap around the text like `**text**` or `~~text~~` similar to how most markdown works.
+
+Effect declaration format:
+```yml
+speech-effect-markdown:
+"**":
     type: prosody
-    volume: medium
-    pitch: default
-    rate: medium
-  voice-prefixes:
-    Sal: Salli
-    Kim: Kimberly
-    Bri: Brian
+    volume: x-loud
+    pitch: low
+    rate: slow
+"~~":
+    type: amazon:effect
+    name: whispered
+"__":
+    type: emphasis
+    level: strong
+"*":
+    type: prosody
+    volume: x-loud
+    rate: x-fast
+    pitch: x-high
+"||":
+    type: say-as
+    interpret-as: expletive
+```
+
+> Note
+> 
+> Self-closing tags (e.g., `<break/>`) are not supported yet.
+
+---
+
+## Text Replacements
+Run as regex-safe replacements so they don't catch partial words.
+```yml
+text-replacements:
+"<3": "heart emoji"
+```
+
+---
+
+## Other Settings
+```yml
+internal-settings:
+server-port: 3000            # Port for local Amazon Polly API server
+twitch-auth-port: 8080       # Must match Twitch App's redirect URI port
+```
+
+---
+
+## Twitch Integration
+
+### Creating a Twitch App
+To use Twitch chat integration:
+- Go to the [Twitch Dev Console](https://dev.twitch.tv/console/apps).
+- Click **"Register Your Application"**
+- Set the **OAuth Redirect URL** to match the value you define in `twitch-auth-port` (i.e., `http://localhost:8080` if the port is 8080).
+- Select `Chat Bot` or something similar
+- **GO TO THE BOTTOM AND CLICK SAVE - after doing the captcha, idk I managed to miss this and kept not saving the port properly** 
+- After creating the app, copy your **Client ID** and **Client Secret**.
+
+Place these values into your `tokens.yml`:
+  ```yml
+twitch:
+  client-id: YOUR_CLIENT_ID
+  client-secret: YOUR_CLIENT_SECRET
+```
+
+### Twitch Configuration
+
+```yml
 twitch-api:
-  enable: false
+  enable: false             # Whether the integration should be enabled or not
   messages:
-    send: false
-    clean-markdown: true
-  channel: ""
-  username: ""
-  chat:
+    send: false             # Whether messages *you* type should be sent to twitch chat or not
+    clean-markdown: true    # If the above is true - whether the messages should be stripped of markdown or not
+  channel: ""               # Channel to connect to
+  username: ""              # Username to use - NOTE this MUST be the user you authenticated with - or it won't work lol
+  
+  # This section allows you to set how certain groups' chat will look in the console. You can use any UTF-8 characters,
+  # as long as your console supports it. It probably also works with UTF-16 but I haven't checked.   
+  # The permissions are the CommandPermissions linked below
+  chat:   
     default:
       format: "%user% ➜ %message%"
       weight: 0
@@ -77,35 +161,14 @@ twitch-api:
       format: "<br-green>⚔ %user%</color> ➜ %message%"
       weight: 10
       permission: MODERATOR
-speech-effect-markdown:
-  "**":
-    type: prosody
-    volume: x-loud
-    pitch: low
-    rate: slow
-  "~~":
-    type: amazon:effect
-    name: whispered
-  "__":
-    type: emphasis
-    level: strong
-  "*":
-    type: prosody
-    volume: x-loud
-    rate: x-fast
-    pitch: x-high
-  "||":
-    type: say-as
-    interpret-as: expletive
-text-replacements:
-    "<3": "heart emoji"
-internal-settings:
-  server-port: 3000
-  twitch-auth-port: 8080
-```
 
-# Formats
-Use these to style your messages. Most formatting tags should be closed with the appropriate </tag> or </color> tag. You can also use <reset> to clear all formatting.
+```
+[Twitch4J Permissions Reference](https://twitch4j.github.io/javadoc/com/github/twitch4j/common/enums/CommandPermission.html)
+
+---
+
+## 🎨 Formats
+Use these to style your messages. 
 
 ### Styles
 | Style         | Tag       | Close With     |
@@ -129,7 +192,6 @@ Use these to style your messages. Most formatting tags should be closed with the
 | White  | `<white>`  | `</color>` |
 
 ### Bright Text Colors
-
 | Bright Color | Tag           | Close With |
 |--------------|---------------|------------|
 | Black        | `<br-black>`  | `</color>` |
@@ -140,7 +202,6 @@ Use these to style your messages. Most formatting tags should be closed with the
 | Purple       | `<br-purple>` | `</color>` |
 | Cyan         | `<br-cyan>`   | `</color>` |
 | White        | `<br-white>`  | `</color>` |
-
 
 ### Background Colors / Highlight Colors
 | Color  | Tag           | Close With    |
@@ -155,7 +216,6 @@ Use these to style your messages. Most formatting tags should be closed with the
 | White  | `<white-bg>`  | `</color-bg>` |
 
 ### Bright Background Colors / Highlight Colors
-
 | Bright BG Color | Tag              | Close With    |
 |-----------------|------------------|---------------|
 | Black           | `<br-black-bg>`  | `</color-bg>` |
@@ -168,21 +228,23 @@ Use these to style your messages. Most formatting tags should be closed with the
 | White           | `<br-white-bg>`  | `</color-bg>` |
 
 ### Resets
-
 | Reset Type       | Tag           |
 |------------------|---------------|
 | Reset All Styles | `<reset>`     |
 | Reset Text Color | `</color>`    |
 | Reset Background | `</color-bg>` |
 
+---
 
-Todo:
-
+## ✅ Todo
 - [x] Make closing tags less annoying
 - [x] Manage exceptions better
 - [x] Probably unify the config into one file
-- [ ] Add configuration for audio output destination
 - [x] Add more Polly configuration (how dates are said, numbers, etc)
-
-
-https://twitch4j.github.io/javadoc/com/github/twitch4j/common/enums/CommandPermission.html
+- [ ] Add configuration for audio output destination
+- [ ] Add support for Twitch bits / cheers
+- [ ] Add support for highlighted messages
+- [ ] Handle deleted messages (optional removal/ignoring)
+- [ ] Add channel point redemption triggers
+- [ ] Support self-closing SSML tags
+- [ ] Add debug/verbose mode toggle
